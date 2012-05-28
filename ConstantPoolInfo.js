@@ -7,43 +7,6 @@ function ConstantPool(javaClassReader) {
 	CONSTANTPOOL = this;
 	
 	/**
-	 * METHODS
-	 */
-	
-	/**
-	 * Get the string from a UTF8 info object at the given index.
-	 * Asserts that it is, in fact, a UTF8 info object.
-	 */
-	this.getUTF8Info = function(index) {
-		if (index == 0) return undefined;
-		assert(this[index].tag == ConstantPoolInfo.tags.UTF8);	
-		return this[index].string;
-	};
-	
-	/**
-	 * Resolve a class info object at the given index to its UTF8 name.
-	 * Asserts that it is, in fact, a class info object.
-	 */
-	this.getClassInfo = function(index) {
-		if (index == 0) return undefined;
-		if (!(index in this)) assert(false);
-		assert(this[index].tag == ConstantPoolInfo.tags.CLASS);
-		return this[index].name;
-	};
-	
-	/**
-	 * Print the constant pool contents to the terminal.
-	 */
-	this.print = function() {
-		addTextToConsole("Constant Pool Contents:");
-		for (var i = 1; i < this.count; i++)
-		{
-			addTextToConsole("\t" + i + " ");
-			this[i].print();
-		}
-	};
-	
-	/**
 	 * PARSING
 	 */
 	
@@ -120,6 +83,39 @@ function ConstantPool(javaClassReader) {
 		}	
 	}
 }
+	
+/**
+ * Get the string from a UTF8 info object at the given index.
+ * Asserts that it is, in fact, a UTF8 info object.
+ */
+ConstantPool.prototype.getUTF8Info = function(index) {
+	if (index == 0) return undefined;
+	assert(this[index].tag == ConstantPoolInfo.tags.UTF8);	
+	return this[index].string;
+};
+
+/**
+ * Resolve a class info object at the given index to its UTF8 name.
+ * Asserts that it is, in fact, a class info object.
+ */
+ConstantPool.prototype.getClassInfo = function(index) {
+	if (index == 0) return undefined;
+	if (!(index in this)) assert(false);
+	assert(this[index].tag == ConstantPoolInfo.tags.CLASS);
+	return this[index].name;
+};
+
+/**
+ * Print the constant pool contents to the terminal.
+ */
+ConstantPool.prototype.print = function() {
+	addTextToConsole("Constant Pool Contents:");
+	for (var i = 1; i < this.count; i++)
+	{
+		addTextToConsole("\t" + i + " ");
+		this[i].print();
+	}
+};
 
 /*The parent object for all the Constant Pool objects
  *Paramaters

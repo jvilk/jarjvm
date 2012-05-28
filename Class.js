@@ -5,321 +5,6 @@
  */
 function Class(javaClassReader) {
 	/**
-	 * MEMBER FUNCTIONS
-	 */
-
-	/**
-	 * Get the super class's object, if exists.
-	 */
-	this.getSuperClass = function() {
-		if (this.superClassName == undefined)
-			return undefined;
-		
-		if (this.superClass != undefined)
-			return this.superClass;
-			
-		this.superClass = Class.getClass(this.superClassName);
-		return this.superClass;
-	}
-	
-	/**
-	 * Get the static initializer function.
-	 * Not all classes have one, so it returns undefined if that is the case.
-	 */
-	this.getStaticInitializer = function() {
-		for (var method in this.methods)
-		{
-			if (this.methods[method].isClinit())
-			{
-				return this.methods[method];
-			}
-		}
-
-		return undefined;
-	};
-	
-	/**
-	 * Get the value of the given static field. 
-	 */
-	this.getStatic = function(fieldName, fieldDescriptor) {
-		return this.getFieldAssert(fieldName, fieldDescriptor).getValue();
-	};
-	
-	/**
-	 * Sets the value of the given static field to newValue.
-	 */
-	this.setStatic = function(fieldName, fieldDescriptor, newValue) {
-		this.getFieldAssert(fieldName, fieldDescriptor).setValue(newValue);
-	};
-	
-	/**
-	 * 'Initializes' the class by calling any needed static
-	 * initializers.
-	 * 
-	 * A class or interface type T will be initialized immediately before one of the following occurs:
-	 * * T is a class and an instance of T is created.
-	 * * T is a class and a static method of T is invoked.
-	 * * A nonconstant static field of T is used or assigned. A constant field is one that is (explicitly 
-	 * 	 or implicitly) both final and static, and that is initialized with the value of a compile-time 
-	 *   constant expression. A reference to such a field must be resolved at compile time to a copy of 
-	 *   the compile-time constant value, so uses of such a field never cause initialization. 
-	 */
-	this.initialize = function() {
-		//No need to initialize twice.
-		if (this.isInitialized) return;
-		
-		//We will be initialized soon enough.
-		this.isInitialized = true;
-		
-		//Deprecation check
-		if (this.isDeprecated())
-		{
-			addErrorToConsole("WARNING: Using deprecated class \"" + this.name + "\".");
-			this.deprecationWarn = true;
-		}
-		
-		//Before a class or interface is initialized, its direct superclass must be initialized, 
-		//but interfaces implemented by the class need not be initialized.
-		var superClass = this.getSuperClass();
-		if (superClass != undefined)
-			superClass.initialize();
-			
-		//The initialization method of a class or interface is static and takes no arguments. 
-		//It has the special name <clinit>.
-		var staticInitializer = this.getStaticInitializer();
-		if (staticInitializer != undefined)
-		{
-			MethodRun.callFromNative(this.thisClassName, "<clinit>", "()V");
-			//STACK.currentFrame.pop(); //HACK: callFromNative creates a resume for the fcn that called this.
-		}
-	};
-	
-	/**
-	 * Returns true if the class is deprecated.
-	 */
-	this.isDeprecated = function() {
-		if (this.deprecated != undefined)
-			return this.deprecated;
-			
-		for (var attribute in this.attributes)
-		{
-			if (this.attributes[attribute].attributeName == "Deprecated")
-			{
-				this.deprecated = true;
-				return true;
-			}
-		}
-		
-		this.deprecated = false;
-		return false;
-	};
-	
-	/**
-	 * Checks if the class has a specific access flag.
-	 */
-	this.hasFlag = function(mask) {
-		return (this.accessFlags & mask) == mask;
-	};
-	
-	/**
-	 * Prints class information to the terminal.
-	 */
-	this.print = function() {
-		//CONSTRUCT PROTOTYPE
-		addTextToConsole("");
-		//Access Flags
-		for (var x in Class.AccessFlags)
-		{	
-			if (this.hasFlag(Class.AccessFlags[x]))
-			{
-				addTextToCurrentLine(Class.AccessFlagStrings[x] + " ");
-			}
-		}
-		
-		//This Class
-		addTextToCurrentLine(this.thisClassName + " ");
-		//Super Class
-		if (this.superClassIndex > 0)
-		{
-			addTextToCurrentLine("extends " + this.superClassName + " ");
-		}
-		//Interfaces
-		if (this.interfacesCount > 0) addTextToCurrentLine("implements ");
-		for (var i = 0; i < this.interfacesCount; i++)
-		{
-			addTextToCurrentLine(this.interfaces[i].className + " ");
-		}
-		addTextToConsole("\n");
-		
-		//this.constantPool.print();
-		//addTextToConsole("\n");
-		
-		addTextToConsole("Fields:");
-		//Fields
-		for (var i = 0; i < this.fieldsCount; i++)
-		{
-			this.fields[i].print();
-		}
-	
-		addTextToConsole("\n");
-		addTextToConsole("Methods:");
-		//Methods
-		for (var i = 0; i < this.methodsCount; i++)
-		{
-			this.methods[i].print();
-		}
-		
-		addTextToConsole("\n");
-		addTextToConsole("Attributes:");
-		//Attributes
-		for (var i = 0; i < this.attributesCount; i++)
-		{
-			this.attributes[i].print();
-		}
-		
-		addTextToConsole("\n");
-		addTextToConsole("END CLASS");
-		
-		promptForUserInput();
-	};
-	
-	/**
-	 * Checks if the given className is a parent class or an interface implemented
-	 * by this class.
-	 */
-	this.isA = function(className) {
-		if (className == "java/lang/Object")
-			return true;
-			
-		if (className == this.superClassName)
-			return true;
-			
-		for (var i in this.interfaces)
-		{
-			var interfaceInfo = Class.getClass(this.interfaces[i].className);
-			if (interfaceInfo.isA(className))
-				return true;
-		}
-		
-		return Class.getClass(this.superClassName).isA(className);
-	};
-	
-	/**
-	 * Checks if the class implements the given interface.
-	 */
-	this.implementsInterface = function(interfaceName) {
-		for (var i in this.interfaces)
-		{
-			var interfaceInfo = Class.getClass(this.interfaces[i].className);
-			if (interfaceInfo.isA(interfaceName))
-				return true;
-		}
-		
-		return false;
-	};
-	
-	/**
-	 * Get a JavaScript object with an instantiated version of this class.
-	 * Meaning, it's not initialized, but its instance fields have default
-	 * values.
-	 */
-	this.getInstantiation = function() {
-		var object = new JavaObject(this);
-		this._populateObjectFields(object);
-		return object;
-	};
-	
-	/**
-	 * Populate a Java object of this class type with the
-	 * fields of this class and its super class (recursive). 
-	 * Used internally by getInstantiation.
-	 */
-	this._populateObjectFields = function(object) {
-		//object.fields = new Array();
-		object.fields[this.thisClassName] = new Array();
-		for (var i = 0; i < this.fields.length; i++)
-		{
-			var field = this.fields[i];
-			
-			//Static fields live in the class, not in the object.
-			if (!field.hasFlag(FieldInfo.AccessFlags.STATIC))
-			{
-				object.fields[this.thisClassName][field.name] = field.getDefaultValue();
-			}
-		}
-		var superClass = this.getSuperClass();
-		if (superClass != undefined)
-			superClass._populateObjectFields(object);
-	};
-	
-	/**
-	 * Get a MethodInfo object by its name and descriptor.
-	 * 
-	 * Called recursively on its parent classes.
-	 * 
-	 * Returns nothing if it cannot be found.
-	 * TODO: Optimize. Save methods in arrays?
-	 */
-	this.getMethod = function(name, descriptor)
-	{
-		for (var i = 0; i < this.methods.length; i++)
-		{
-			var method = this.methods[i];
-			if(method.name == name){
-				addTextToConsole(method.descriptor);
-			}
-			if (method.name == name && method.descriptor == descriptor)
-				return method;
-		}
-		
-		var superClass = this.getSuperClass();
-		if (superClass != undefined)
-			return superClass.getMethod(name, descriptor);
-			
-		return undefined;
-	};
-	
-	/**
-	 * Get a FieldInfo for the field with the given name and descriptor.
-	 */
-	this.getField = function(name, descriptor)
-	{
-		//alert(name + ": " + descriptor); 
-		for (var i = 0; i < this.fields.length; i++)
-		{
-			var field = this.fields[i];
-			if (field.name == name && field.descriptor == descriptor)
-				return field;
-		}
-		
-		var superClass = this.getSuperClass();
-		if (superClass != undefined)
-			return superClass.getField(name, descriptor);
-			
-		return undefined;
-	};
-	
-	/**
-	 * Same function as getMethod, except this method asserts
-	 * that it does not return an undefined method.
-	 */
-	this.getMethodAssert = function(name, descriptor) {
-		var methodInfo = this.getMethod(name,descriptor);
-		assert(methodInfo != undefined);
-		return methodInfo;
-	};
-	
-	/**
-	 * Same as getField, but it asserts that the returned field
-	 * is not undefined.
-	 */
-	this.getFieldAssert = function(name, descriptor) {
-		var field = this.getField(name, descriptor);
-		assert(field != undefined);
-		return field;
-	};
-	
-	/**
 	 * PARSING ACTION
 	 */
 	
@@ -412,6 +97,317 @@ function Class(javaClassReader) {
 }
 
 /**
+ * Get the super class's object, if exists.
+ */
+Class.prototype.getSuperClass = function() {
+	if (this.superClassName == undefined)
+		return undefined;
+	
+	if (this.superClass != undefined)
+		return this.superClass;
+		
+	this.superClass = Class.getClass(this.superClassName);
+	return this.superClass;
+}
+
+/**
+ * Get the static initializer function.
+ * Not all classes have one, so it returns undefined if that is the case.
+ */
+Class.prototype.getStaticInitializer = function() {
+	for (var method in this.methods)
+	{
+		if (this.methods[method].isClinit())
+		{
+			return this.methods[method];
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * Get the value of the given static field. 
+ */
+Class.prototype.getStatic = function(fieldName, fieldDescriptor) {
+	return this.getFieldAssert(fieldName, fieldDescriptor).getValue();
+}
+
+/**
+ * Sets the value of the given static field to newValue.
+ */
+Class.prototype.setStatic = function(fieldName, fieldDescriptor, newValue) {
+	this.getFieldAssert(fieldName, fieldDescriptor).setValue(newValue);
+}
+
+/**
+ * 'Initializes' the class by calling any needed static
+ * initializers.
+ * 
+ * A class or interface type T will be initialized immediately before one of the following occurs:
+ * * T is a class and an instance of T is created.
+ * * T is a class and a static method of T is invoked.
+ * * A nonconstant static field of T is used or assigned. A constant field is one that is (explicitly 
+ * 	 or implicitly) both final and static, and that is initialized with the value of a compile-time 
+ *   constant expression. A reference to such a field must be resolved at compile time to a copy of 
+ *   the compile-time constant value, so uses of such a field never cause initialization. 
+ */
+Class.prototype.initialize = function() {
+	//No need to initialize twice.
+	if (this.isInitialized) return;
+	
+	//We will be initialized soon enough.
+	this.isInitialized = true;
+	
+	//Deprecation check
+	if (this.isDeprecated())
+	{
+		addErrorToConsole("WARNING: Using deprecated class \"" + this.name + "\".");
+		this.deprecationWarn = true;
+	}
+	
+	//Before a class or interface is initialized, its direct superclass must be initialized, 
+	//but interfaces implemented by the class need not be initialized.
+	var superClass = this.getSuperClass();
+	if (superClass != undefined)
+		superClass.initialize();
+		
+	//The initialization method of a class or interface is static and takes no arguments. 
+	//It has the special name <clinit>.
+	var staticInitializer = this.getStaticInitializer();
+	if (staticInitializer != undefined)
+	{
+		MethodRun.callFromNative(this.thisClassName, "<clinit>", "()V");
+		//STACK.currentFrame.pop(); //HACK: callFromNative creates a resume for the fcn that called this.
+	}
+}
+
+/**
+ * Returns true if the class is deprecated.
+ */
+Class.prototype.isDeprecated = function() {
+	if (this.deprecated != undefined)
+		return this.deprecated;
+		
+	for (var attribute in this.attributes)
+	{
+		if (this.attributes[attribute].attributeName == "Deprecated")
+		{
+			this.deprecated = true;
+			return true;
+		}
+	}
+	
+	this.deprecated = false;
+	return false;
+}
+
+/**
+ * Checks if the class has a specific access flag.
+ */
+Class.prototype.hasFlag = function(mask) {
+	return (this.accessFlags & mask) == mask;
+}
+
+/**
+ * Prints class information to the terminal.
+ */
+Class.prototype.print = function() {
+	//CONSTRUCT PROTOTYPE
+	addTextToConsole("");
+	//Access Flags
+	for (var x in Class.AccessFlags)
+	{	
+		if (this.hasFlag(Class.AccessFlags[x]))
+		{
+			addTextToCurrentLine(Class.AccessFlagStrings[x] + " ");
+		}
+	}
+	
+	//This Class
+	addTextToCurrentLine(this.thisClassName + " ");
+	//Super Class
+	if (this.superClassIndex > 0)
+	{
+		addTextToCurrentLine("extends " + this.superClassName + " ");
+	}
+	//Interfaces
+	if (this.interfacesCount > 0) addTextToCurrentLine("implements ");
+	for (var i = 0; i < this.interfacesCount; i++)
+	{
+		addTextToCurrentLine(this.interfaces[i].className + " ");
+	}
+	addTextToConsole("\n");
+	
+	//this.constantPool.print();
+	//addTextToConsole("\n");
+	
+	addTextToConsole("Fields:");
+	//Fields
+	for (var i = 0; i < this.fieldsCount; i++)
+	{
+		this.fields[i].print();
+	}
+
+	addTextToConsole("\n");
+	addTextToConsole("Methods:");
+	//Methods
+	for (var i = 0; i < this.methodsCount; i++)
+	{
+		this.methods[i].print();
+	}
+	
+	addTextToConsole("\n");
+	addTextToConsole("Attributes:");
+	//Attributes
+	for (var i = 0; i < this.attributesCount; i++)
+	{
+		this.attributes[i].print();
+	}
+	
+	addTextToConsole("\n");
+	addTextToConsole("END CLASS");
+	
+	promptForUserInput();
+}
+
+/**
+ * Checks if the given className is a parent class or an interface implemented
+ * by this class.
+ */
+Class.prototype.isA = function(className) {
+	if (className == "java/lang/Object")
+		return true;
+		
+	if (className == this.superClassName)
+		return true;
+		
+	for (var i in this.interfaces)
+	{
+		var interfaceInfo = Class.getClass(this.interfaces[i].className);
+		if (interfaceInfo.isA(className))
+			return true;
+	}
+	
+	return Class.getClass(this.superClassName).isA(className);
+}
+
+/**
+ * Checks if the class implements the given interface.
+ */
+Class.prototype.implementsInterface = function(interfaceName) {
+	for (var i in this.interfaces)
+	{
+		var interfaceInfo = Class.getClass(this.interfaces[i].className);
+		if (interfaceInfo.isA(interfaceName))
+			return true;
+	}
+	
+	return false;
+}
+
+/**
+ * Get a JavaScript object with an instantiated version of this class.
+ * Meaning, it's not initialized, but its instance fields have default
+ * values.
+ */
+Class.prototype.getInstantiation = function() {
+	var object = new JavaObject(this);
+	this._populateObjectFields(object);
+	return object;
+}
+
+/**
+ * Populate a Java object of this class type with the
+ * fields of this class and its super class (recursive). 
+ * Used internally by getInstantiation.
+ */
+Class.prototype._populateObjectFields = function(object) {
+	//object.fields = new Array();
+	object.fields[this.thisClassName] = new Array();
+	for (var i = 0; i < this.fields.length; i++)
+	{
+		var field = this.fields[i];
+		
+		//Static fields live in the class, not in the object.
+		if (!field.hasFlag(FieldInfo.AccessFlags.STATIC))
+		{
+			object.fields[this.thisClassName][field.name] = field.getDefaultValue();
+		}
+	}
+	var superClass = this.getSuperClass();
+	if (superClass != undefined)
+		superClass._populateObjectFields(object);
+}
+
+/**
+ * Get a MethodInfo object by its name and descriptor.
+ * 
+ * Called recursively on its parent classes.
+ * 
+ * Returns nothing if it cannot be found.
+ * TODO: Optimize. Save methods in arrays?
+ */
+Class.prototype.getMethod = function(name, descriptor)
+{
+	for (var i = 0; i < this.methods.length; i++)
+	{
+		var method = this.methods[i];
+		if(method.name == name){
+			addTextToConsole(method.descriptor);
+		}
+		if (method.name == name && method.descriptor == descriptor)
+			return method;
+	}
+	
+	var superClass = this.getSuperClass();
+	if (superClass != undefined)
+		return superClass.getMethod(name, descriptor);
+		
+	return undefined;
+}
+
+/**
+ * Get a FieldInfo for the field with the given name and descriptor.
+ */
+Class.prototype.getField = function(name, descriptor)
+{
+	//alert(name + ": " + descriptor); 
+	for (var i = 0; i < this.fields.length; i++)
+	{
+		var field = this.fields[i];
+		if (field.name == name && field.descriptor == descriptor)
+			return field;
+	}
+	
+	var superClass = this.getSuperClass();
+	if (superClass != undefined)
+		return superClass.getField(name, descriptor);
+		
+	return undefined;
+}
+
+/**
+ * Same function as getMethod, except this method asserts
+ * that it does not return an undefined method.
+ */
+Class.prototype.getMethodAssert = function(name, descriptor) {
+	var methodInfo = this.getMethod(name,descriptor);
+	assert(methodInfo != undefined);
+	return methodInfo;
+}
+
+/**
+ * Same as getField, but it asserts that the returned field
+ * is not undefined.
+ */
+Class.prototype.getFieldAssert = function(name, descriptor) {
+	var field = this.getField(name, descriptor);
+	assert(field != undefined);
+	return field;
+}
+
+/**
  * SUBTYPES
  */
 
@@ -448,7 +444,7 @@ Class.getClass = function(className) {
 
 	//Synchronously get the JRE class.
 	var request = new XMLHttpRequest();
-	request.overrideMimeType('text/plain; charset=x-user-defined');  
+	request.overrideMimeType('text/plain; charset=x-user-defined'); 
 	request.open('GET', url + "/jre/" + className + ".class", false);
 	request.send(null);
 

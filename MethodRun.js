@@ -12,7 +12,6 @@
  * into.
  */
 function MethodRun(type, pc, exception) {
-	
 	//A MethodRun object always indicates some sort of Context Switch.
 	CONTEXTSWITCH = true;
 	
@@ -30,34 +29,34 @@ function MethodRun(type, pc, exception) {
 		this.exception = undefined;
 	
 	//addTextToConsole("Creating a methodrun " + this.type + " for " + STACK.currentFrame.methodInfo + "  with PC " + this.pc);
+}
+
+/**
+ * Executes the method using the information stored inside
+ * the MethodRun object.
+ */
+MethodRun.prototype.execute = function() {
+	PC = this.pc;
+	addTextToConsole("Executing a methodRun for " + STACK.currentFrame.methodInfo + " with PC " + this.pc);
+	if (this.type == MethodRun.type.EXCEPTION)
+		STACK.currentFrame.methodInfo.exception(this.exception);
+	else
+		STACK.currentFrame.methodInfo.execute();
+}
+
+/**
+ * Pretty print for the stack.
+ */
+MethodRun.prototype.toString = function() {
+	var typeStr = "";
+	for (var type in MethodRun.type) {
+		if (MethodRun.type[type] == this.type) {
+			typeStr = type;
+			break;
+		}	
+	}
 	
-	/**
-	 * Executes the method using the information stored inside
-	 * the MethodRun object.
-	 */
-	this.execute = function() {
-		PC = this.pc;
-		addTextToConsole("Executing a methodRun for " + STACK.currentFrame.methodInfo + " with PC " + this.pc);
-		if (this.type == MethodRun.type.EXCEPTION)
-			STACK.currentFrame.methodInfo.exception(this.exception);
-		else
-			STACK.currentFrame.methodInfo.execute();
-	};
-	
-	/**
-	 * Pretty print for the stack.
-	 */
-	this.toString = function() {
-		var typeStr = "";
-		for (var type in MethodRun.type) {
-			if (MethodRun.type[type] == this.type) {
-				typeStr = type;
-				break;
-			}	
-		}
-		
-		return "[MethodRun " + typeStr + " " + this.pc + "]";
-	};
+	return "[MethodRun " + typeStr + " " + this.pc + "]";
 }
 
 MethodRun.type = {

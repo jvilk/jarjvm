@@ -1,180 +1,7 @@
 /**
  * Represents a method.
  */
-function MethodInfo(javaClassReader, classInfo) {
-	
-	/**
-	 * MEMBER FUNCTIONS
-	 */
-	
-	/**
-	 * Checks if the MethodInfo has a specific access flag.
-	 */
-	this.hasFlag = function(mask) {
-		return (this.accessFlags & mask) == mask;
-	};
-	
-	/**
-	 * Checks if this MethodInfo object is <clinit>.
-	 */
-	this.isClinit = function() {
-		return this.name == "<clinit>";
-	};
-
-	/**
-	 * Checks if this MethodInfo object is an object constructor.
-	 */
-	this.isConstructor = function() {
-		if (this.isInit != undefined)
-			return this.isInit;
-		
-		this.isInit = this.name == "<init>";
-		return this.isInit;
-	};
-
-	/**
-	 * Pretty print this method's signature to the terminal.
-	 */
-	this.print = function() {
-		var output = "\t";
-		
-		//Step 1: Get a string representation of the access flags.
-		for (var x in MethodInfo.AccessFlags)
-		{
-			if (this.hasFlag(MethodInfo.AccessFlags[x]))
-			{
-				output += MethodInfo.AccessFlagStrings[x] + " ";
-			}
-		}
-		
-		//Step 2: Get method name.
-		output += this.name + " ";
-		
-		//Step 3: Get method signature.
-		output += this.descriptor;
-		
-		if (this.hasFlag(MethodInfo.AccessFlags.NATIVE))
-			addErrorToConsole(output);
-		else
-			addTextToConsole(output);
-	};
-	
-	/**
-	 * Convert to string.
-	 */
-	this.toString = function() {
-		var output = "";
-		
-		for (var x in MethodInfo.AccessFlags)
-		{
-			if (this.hasFlag(MethodInfo.AccessFlags[x]))
-			{
-				output += MethodInfo.AccessFlagStrings[x] + " ";
-			}
-		}
-		output += this.classInfo.thisClassName + "." + this.name + " " + this.descriptor;
-		
-		return output;
-	};
-	
-	/**
-	 * Lazily finds the code attribute. Returns undefined if one does not
-	 * exist.
-	 */
-	this.getCodeAttribute = function() {
-		if (this.codeAttribute != undefined) return this.codeAttribute;
-		
-		for (var i in this.attributes)
-		{
-			if (this.attributes[i].attributeName == "Code")
-			{
-				this.codeAttribute = this.attributes[i];
-				return this.codeAttribute;
-			}
-		}
-		
-		return undefined;
-	};
-	
-	/**
-	 * Returns true if method is deprecated.
-	 * False otherwise.
-	 */
-	this.isDeprecated = function() {
-		if (this.deprecated != undefined) 
-			return this.deprecated;
-		
-		for (var attribute in this.attributes)
-		{
-			if (this.attributes[attribute].attributeName == "Deprecated")
-			{
-				this.deprecated = true;
-				return true;
-			}
-		}
-		this.deprecated = false;
-		return false;
-	};
-	
-	/**
-	 * Executes the method normally.
-	 */
-	this.execute = function() {
-		//Begin static initialization of this method's class, unless this
-		//is the static initializer.
-		if (!this.isClinit()) {
-			//addTextToConsole("Initializing my class...");
-			this.classInfo.initialize();
-		}
-		
-		//addTextToConsole("Initialized!");
-		
-		//PC of 0 means that execution is starting, not resuming.
-		//Print a warning if calling a deprecated method.
-		if (PC == 0 && this.isDeprecated() && !this.deprecationWarned)
-		{
-			addErrorToConsole("WARNING: Using deprecated method \"" + this.name + "\".");
-			//We only want to warn once per method.
-			this.deprecationWarned = true;
-		}
-		
-		var codeAttribute = this.getCodeAttribute();
-		assert(codeAttribute != undefined);
-		
-		codeAttribute.execute();
-		//addTextToConsole("FINISHED execution!");
-	};
-	
-	/**
-	 * Searches for an exception that needs to be handled, and takes the
-	 * necessary actions required to handle it.
-	 */
-	this.exception = function() {
-		var codeAttribute = this.getCodeAttribute();
-		assert(codeAttribute != undefined);
-		
-		var handlerPC = codeAttribute.exception();
-		
-		//Exception was handled by a catch or finally statement!
-		if (handlerPC >= 0)
-		{
-			//Create a new MethodRun object for this method with the new PC.
-			MethodRun.createResume(handlerPC);
-		}
-		//Exception was not handled. Tell the next function to handle it.
-		else
-		{
-			//Pop this method's frame. It can't handle this exception!
-			STACK.pop();
-		
-			//Fix MethodRun object of next method so it knows to handle
-			//an exception.
-			var methodRun = STACK.currentFrame.pop();
-			methodRun.type = MethodRun.type.EXCEPTION;
-			STACK.currentFrame.push(methodRun);
-		}
-	};
-	
+function MethodInfo(javaClassReader, classInfo) {	
 	this.classInfo = classInfo;
 	this.accessFlags = javaClassReader.getUintField(2);
 	
@@ -201,6 +28,174 @@ function MethodInfo(javaClassReader, classInfo) {
 		this.exception = function() {
 			addErrorToConsole("JVM ERROR: The JVM tried to look for an exception handler in a native function.");
 		}
+	}
+}
+
+/**
+ * Checks if the MethodInfo has a specific access flag.
+ */
+MethodInfo.prototype.hasFlag = function(mask) {
+	return (this.accessFlags & mask) == mask;
+}
+
+/**
+ * Checks if this MethodInfo object is <clinit>.
+ */
+MethodInfo.prototype.isClinit = function() {
+	return this.name == "<clinit>";
+}
+
+/**
+ * Checks if this MethodInfo object is an object constructor.
+ */
+MethodInfo.prototype.isConstructor = function() {
+	if (this.isInit != undefined)
+		return this.isInit;
+	
+	this.isInit = this.name == "<init>";
+	return this.isInit;
+}
+
+/**
+ * Pretty print this method's signature to the terminal.
+ */
+MethodInfo.prototype.print = function() {
+	var output = "\t";
+	
+	//Step 1: Get a string representation of the access flags.
+	for (var x in MethodInfo.AccessFlags)
+	{
+		if (this.hasFlag(MethodInfo.AccessFlags[x]))
+		{
+			output += MethodInfo.AccessFlagStrings[x] + " ";
+		}
+	}
+	
+	//Step 2: Get method name.
+	output += this.name + " ";
+	
+	//Step 3: Get method signature.
+	output += this.descriptor;
+	
+	if (this.hasFlag(MethodInfo.AccessFlags.NATIVE))
+		addErrorToConsole(output);
+	else
+		addTextToConsole(output);
+}
+
+/**
+ * Convert to string.
+ */
+MethodInfo.prototype.toString = function() {
+	var output = "";
+	
+	for (var x in MethodInfo.AccessFlags)
+	{
+		if (this.hasFlag(MethodInfo.AccessFlags[x]))
+		{
+			output += MethodInfo.AccessFlagStrings[x] + " ";
+		}
+	}
+	output += this.classInfo.thisClassName + "." + this.name + " " + this.descriptor;
+	
+	return output;
+}
+
+/**
+ * Lazily finds the code attribute. Returns undefined if one does not
+ * exist.
+ */
+MethodInfo.prototype.getCodeAttribute = function() {
+	if (this.codeAttribute != undefined) return this.codeAttribute;
+	
+	for (var i in this.attributes)
+	{
+		if (this.attributes[i].attributeName == "Code")
+		{
+			this.codeAttribute = this.attributes[i];
+			return this.codeAttribute;
+		}
+	}
+	
+	return undefined;
+}
+
+/**
+ * Returns true if method is deprecated.
+ * False otherwise.
+ */
+MethodInfo.prototype.isDeprecated = function() {
+	if (this.deprecated != undefined) 
+		return this.deprecated;
+	
+	for (var attribute in this.attributes)
+	{
+		if (this.attributes[attribute].attributeName == "Deprecated")
+		{
+			this.deprecated = true;
+			return true;
+		}
+	}
+	this.deprecated = false;
+	return false;
+}
+
+/**
+ * Executes the method normally.
+ */
+MethodInfo.prototype.execute = function() {
+	//Begin static initialization of this method's class, unless this
+	//is the static initializer.
+	if (!this.isClinit()) {
+		//addTextToConsole("Initializing my class...");
+		this.classInfo.initialize();
+	}
+	
+	//addTextToConsole("Initialized!");
+	
+	//PC of 0 means that execution is starting, not resuming.
+	//Print a warning if calling a deprecated method.
+	if (PC == 0 && this.isDeprecated() && !this.deprecationWarned)
+	{
+		addErrorToConsole("WARNING: Using deprecated method \"" + this.name + "\".");
+		//We only want to warn once per method.
+		this.deprecationWarned = true;
+	}
+	
+	var codeAttribute = this.getCodeAttribute();
+	assert(codeAttribute != undefined);
+	
+	codeAttribute.execute();
+	//addTextToConsole("FINISHED execution!");
+}
+
+/**
+ * Searches for an exception that needs to be handled, and takes the
+ * necessary actions required to handle it.
+ */
+MethodInfo.prototype.exception = function() {
+	var codeAttribute = this.getCodeAttribute();
+	assert(codeAttribute != undefined);
+	
+	var handlerPC = codeAttribute.exception();
+	
+	//Exception was handled by a catch or finally statement!
+	if (handlerPC >= 0)
+	{
+		//Create a new MethodRun object for this method with the new PC.
+		MethodRun.createResume(handlerPC);
+	}
+	//Exception was not handled. Tell the next function to handle it.
+	else
+	{
+		//Pop this method's frame. It can't handle this exception!
+		STACK.pop();
+	
+		//Fix MethodRun object of next method so it knows to handle
+		//an exception.
+		var methodRun = STACK.currentFrame.pop();
+		methodRun.type = MethodRun.type.EXCEPTION;
+		STACK.currentFrame.push(methodRun);
 	}
 }
 
