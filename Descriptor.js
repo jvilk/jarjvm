@@ -59,7 +59,7 @@ function FieldObjectDescriptor(type, className) {
 	this.className = className;
 	
 	this.toString = function(){
-		return this.type + ", ClassName: " + this.className; 
+		return this.type + ", ClassName: " + this.className;
 	};
 }
 
@@ -79,7 +79,7 @@ function FieldBaseDescriptor(type, baseValue) {
 	this.baseValue = baseValue;
 	
 	this.toString = function(){
-		return this.type + ", PrimitiveType: " + this.baseValue; 
+		return this.type + ", PrimitiveType: " + this.baseValue;
 	};
 }
 
@@ -122,9 +122,9 @@ FieldDescriptor.baseType = {
 
 
 function parseMethodDescriptor(descriptorText) {
-	assert(descriptorText != undefined);
+	assert(descriptorText !== undefined);
 	if(descriptorText.charAt(0) === '('){
-		args = new Array();
+		args = [];
 		return parseParameters(descriptorText.substr(1), args);
 
 	}

@@ -86,7 +86,7 @@ function Integer(value){
 	};
 	this.clone = function(){
 		return new Integer(this.value);
-	}
+	};
 	
 }
 
@@ -166,14 +166,14 @@ function Double(value){
 	};
 	this.toFloat = function(){
 		//TODO: Do a bounds check
-		return new Float(parseFloat(this.value)); //Wink ;) 
+		return new Float(parseFloat(this.value)); //Wink ;)
 	};
 	this.toString = function(){
 		return "[" + this.dataType + " " + this.value.toString() + "]";
 	};
 	this.clone = function(){
 		return new Double(this.value);
-	}
+	};
 }
 
 function Byte(value){
@@ -261,8 +261,7 @@ function Byte(value){
 	};
 	this.clone = function(){
 		return new Byte(this.value);
-	}
-	
+	};
 }
 
 function Bool(value){
@@ -285,7 +284,7 @@ function Bool(value){
 	this.modulo = function(otherPrimitive){
 		var result = this.value - (this.value/otherPrimitive.value) * otherPrimitive.value;
 		return new Bool(result);
-	};	
+	};
 	/**Shifting**/
 	//Shift this number left by the shift amount
 	this.shiftLeft = function(shiftAmount){
@@ -346,7 +345,7 @@ function Bool(value){
 	};
 	this.clone = function(){
 		return new Bool(this.value);
-	}
+	};
 }
 
 function Char(value){
@@ -369,7 +368,7 @@ function Char(value){
 	this.modulo = function(otherPrimitive){
 		var result = this.value - (this.value/otherPrimitive.value) * otherPrimitive.value;
 		return new Char(result);
-	};	
+	};
 	/**Shifting**/
 	//Shift this number left by the shift amount
 	this.shiftLeft = function(shiftAmount){
@@ -431,7 +430,7 @@ function Char(value){
 	};
 	this.clone = function(){
 		return new Char(this.value);
-	}
+	};
 }
 
 function Short(value){
@@ -454,7 +453,7 @@ function Short(value){
 	this.modulo = function(otherPrimitive){
 		var result = this.value - (this.value/otherPrimitive.value) * otherPrimitive.value;
 		return new Short(result);
-	};	
+	};
 	/**Shifting**/
 	//Shift this number left by the shift amount
 	this.shiftLeft = function(shiftAmount){
@@ -515,7 +514,7 @@ function Short(value){
 	};
 	this.clone = function(){
 		return new Short(this.value);
-	}
+	};
 }
 
 function Float(value){
@@ -538,7 +537,7 @@ function Float(value){
 	this.modulo = function(otherPrimitive){
 		var result = this.value - (this.value/otherPrimitive.value) * otherPrimitive.value;
 		return new Float(result);
-	};	
+	};
 	/**Shifting**/
 	//Shift this number left by the shift amount
 	this.shiftLeft = function(shiftAmount){
@@ -598,5 +597,5 @@ function Float(value){
 	};
 	this.clone = function(){
 		return new Float(this.value);
-	}
+	};
 }

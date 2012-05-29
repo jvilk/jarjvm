@@ -1,10 +1,10 @@
 USERPROMPT = "CS691ST:user$ ";
-PREVIOUSCOMMANDS = new Array();
+PREVIOUSCOMMANDS = [];
 COMMANDINDEX = 0;
 
 
 /* If you put _ as the first character the help menu will not print it */
-consoleCommands = new Array();
+consoleCommands = [];
 consoleCommands["help"] = printHelpMenu;
 consoleCommands["whoami"] = whoAmI;
 consoleCommands["execute"] = execute;
@@ -14,15 +14,15 @@ consoleCommands["listloadedclasses"] = listLoadedClasses;
 consoleCommands["clearstack"] = clearstack;
 consoleCommands["enabledebug"] = enableDebug;
 
-consoleCommandsDescriptions = new Array();    
-consoleCommandsDescriptions["help"] = "Prints the help menu"
-consoleCommandsDescriptions["whoami"] = "Prints the current user - kinda"; 
-consoleCommandsDescriptions["execute"] = "Used to run a java program. Must be followed by a loaded class name"
-consoleCommandsDescriptions["_pushelement"] = ""
-consoleCommandsDescriptions["_popelement"] = ""
-consoleCommandsDescriptions["listloadedclasses"] = "List all the currently loaded Java classes"
-consoleCommandsDescriptions["clearstack"] = "Clears the debugging stack"
-consoleCommandsDescriptions["enabledebug"] = "Enables debugging output (Greatly affects speed)"
+consoleCommandsDescriptions = [];
+consoleCommandsDescriptions["help"] = "Prints the help menu";
+consoleCommandsDescriptions["whoami"] = "Prints the current user - kinda";
+consoleCommandsDescriptions["execute"] = "Used to run a java program. Must be followed by a loaded class name";
+consoleCommandsDescriptions["_pushelement"] = "";
+consoleCommandsDescriptions["_popelement"] = "";
+consoleCommandsDescriptions["listloadedclasses"] = "List all the currently loaded Java classes";
+consoleCommandsDescriptions["clearstack"] = "Clears the debugging stack";
+consoleCommandsDescriptions["enabledebug"] = "Enables debugging output (Greatly affects speed)";
 
  
 function consoleInit(){
@@ -38,14 +38,14 @@ function createMOTD(message){
 	addProgressToConsole("-------------------------------------------------------------------------------");
 }
 
-var ConsoleStrings = new Array();
+var ConsoleStrings = [];
 ConsoleStrings.types = {
 	TEXT: 0,
 	WARNING: 1,
 	ERROR: 2,
 	OUTPUT: 3,
-	PROGRESS: 4,
-}
+	PROGRESS: 4
+};
 /*
 function addTextToCurrentLine(text){
 	//Get the pre lines
@@ -167,9 +167,9 @@ function parsePossibleCommand(){
 }
 
 function nextPreviousCommand(){
-	if(PREVIOUSCOMMANDS[COMMANDINDEX] != undefined){
+	if(PREVIOUSCOMMANDS[COMMANDINDEX] !== undefined){
 		eraseCurrentLine();
-		addTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX])
+		addTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
 		COMMANDINDEX = (COMMANDINDEX > 0) ? COMMANDINDEX -= 1 : 0; //Don't go below 0
 	}
 }
@@ -178,7 +178,7 @@ function nextCommand(){
 	COMMANDINDEX += 1;
 	eraseCurrentLine();
 	if(COMMANDINDEX < PREVIOUSCOMMANDS.length){
-		addTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX])
+		addTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
 	}else{
 		COMMANDINDEX = PREVIOUSCOMMANDS.length - 1;
 	}
@@ -254,7 +254,7 @@ function pushElement(text){
 	//alert("Push: " + text);
 	if (DEBUG){
 		var stack = document.getElementById("stack");
-		stack.innerHTML += "<div class='stackElement' style='white-space:pre-wrap'>"+escapeHTML(text)+"</div>"
+		stack.innerHTML += "<div class='stackElement' style='white-space:pre-wrap'>"+escapeHTML(text)+"</div>";
 		scrollToBottom("stackContainer");
 	}
 }

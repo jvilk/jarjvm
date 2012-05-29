@@ -11,4 +11,4 @@ function Instruction(length, opcode) {
 
 Instruction.prototype.execute = function() {
 	this.fcn.apply(null, this.args);
-}
+};

@@ -1,8 +1,8 @@
 /**
  * Contains the code for every bytecode instruction.
  */
-var ByteCode = new Array();
-var ArrayType = new Object();
+var ByteCode = [];
+var ArrayType = {};
 ByteCode.codes = {
 	aaload : 0x32, //Done
 	aastore : 0x53, //Done
@@ -225,7 +225,7 @@ ByteCode.loadFromArray = function() {
 	var arrayIndex = ByteCode.pop().value;
 	//Assumed Integer Primative
 	var array = ByteCode.pop();
-	if(array == null) {
+	if(array === null) {
 		ByteCode.throwException("NullPointerException");
 		return;
 	}
@@ -241,7 +241,7 @@ ByteCode.storeToArray = function() {
 	var arrayIndex = ByteCode.pop().value;
 	//Get the int from the Primitive class
 	var array = ByteCode.pop();
-	if( array == null) {
+	if( array === null) {
 		ByteCode.throwException("NullPointerException");
 		return;
 	}
@@ -462,7 +462,7 @@ ByteCode[ByteCode.codes.areturn] = function() {
 ByteCode[ByteCode.codes.arraylength] = function() {
 	var array = ByteCode.pop();
 	//
-	if(array == null) {
+	if(array === null) {
 		ByteCode.throwException("NullPointerException");
 		return;
 	}
@@ -487,7 +487,7 @@ ByteCode[ByteCode.codes.astore_3] = function() {
 ByteCode[ByteCode.codes.athrow] = function() {
 	var exception = ByteCode.pop();
 
-	if(exception == null) {
+	if(exception === null) {
 		ByteCode.throwException("NullPointerException");
 		return;
 	}
@@ -641,14 +641,15 @@ ByteCode[ByteCode.codes.dup2] = function() {
 };
 ByteCode[ByteCode.codes.dup2_x1] = function() {
 	var firstValue = ByteCode.pop();
+	var secondValue;
 
 	if(firstValue.type == StackElement.types.long_ || firstValue.type == StackElement.types.double_) {
-		var secondValue = ByteCode.pop();
+		secondValue = ByteCode.pop();
 		ByteCode.push(firstValue);
 		ByteCode.push(secondValue);
 		ByteCode.push(firstValue);
 	} else {
-		var secondValue = ByteCode.pop();
+		secondValue = ByteCode.pop();
 		var thirdValue = ByteCode.pop();
 		ByteCode.push(secondValue);
 		ByteCode.push(firstValue);
@@ -660,6 +661,7 @@ ByteCode[ByteCode.codes.dup2_x1] = function() {
 ByteCode[ByteCode.codes.dup2_x2] = function() {
 	var firstValue = ByteCode.pop();
 	var secondValue = ByteCode.pop();
+	var thirdValue;
 	if(firstValue.type == StackElement.types.long_ || firstValue.type == StackElement.types.double_) {
 		if(secondValue.type == StackElement.types.long_ || secondValue.type == StackElement.types.double_) {
 			//Form 4
@@ -668,14 +670,14 @@ ByteCode[ByteCode.codes.dup2_x2] = function() {
 			ByteCode.push(firstValue);
 		} else {
 			//Form 2
-			var thirdValue = ByteCode.pop();
+			thirdValue = ByteCode.pop();
 			ByteCode.push(firstValue);
 			ByteCode.push(thirdValue);
 			ByteCode.push(secondValue);
 			ByteCode.push(firstValue);
 		}
 	} else {
-		var thirdValue = ByteCode.pop();
+		thirdValue = ByteCode.pop();
 		if(thirdValue.type == StackElement.types.long_ || thirdValue.type == StackElement.types.double_) {
 			//Form 3
 			ByteCode.push(secondValue);
@@ -784,7 +786,7 @@ ByteCode[ByteCode.codes.getfield] = function(fieldRef) {
 	//alert("getField");
 	var object = ByteCode.pop();
 	var field = fieldRef.getRef();
-	assert(field != undefined);
+	assert(field !== undefined);
 	//addTextToConsole(object.getFieldByFieldInfo(field));
 	//var value = object.getFieldByFieldInfo(field);
 	//alert(value);
@@ -935,7 +937,7 @@ ByteCode[ByteCode.codes.if_icmpeq] = function(offset) {
 ByteCode[ByteCode.codes.ifeq] = function(offset) {
 	var number = ByteCode.pop();
 
-	if(number.value == 0) {
+	if(number.value === 0) {
 		ByteCode.branch(3, offset);
 		return;
 	}
@@ -943,7 +945,7 @@ ByteCode[ByteCode.codes.ifeq] = function(offset) {
 ByteCode[ByteCode.codes.ifne] = function(offset) {
 	var number = ByteCode.pop();
 
-	if(number.value != 0) {
+	if(number.value !== 0) {
 		ByteCode.branch(3, offset);
 		return;
 	}
@@ -1042,7 +1044,7 @@ ByteCode[ByteCode.codes.invokeinterface] = function(methodRef, count) {//Count u
 	addTextToConsole(method.toString());
 	//save the arguments for stack popping
 	//Pop the needed arguments off the stack
-	var args = new Array();
+	var args = [];
 	for(var i = 0; i < numOfArgs; i++) {
 		args.push(ByteCode.pop());
 		addTextToConsole("ARG at " + i + ": " + args[i]);
@@ -1063,7 +1065,7 @@ ByteCode[ByteCode.codes.invokeinterface] = function(methodRef, count) {//Count u
 	var methodInfo = methodRef.getRef();
 
 	//Check to make sure it found a methodinfo
-	if(methodInfo == undefined) {
+	if(methodInfo === undefined) {
 		alert(methodRef.toString());
 		ByteCode.throwException("AbstractMethodError");
 		return;
@@ -1093,7 +1095,7 @@ ByteCode[ByteCode.codes.invokestatic] = function(methodRef) {
 	//save the arguments for stack popping
 
 	//Pop the needed arguments off the stack
-	var args = new Array();
+	var args = [];
 	for(var i = 0; i < numOfArgs; i++) {
 		args.push(ByteCode.pop());
 	}
@@ -1102,7 +1104,7 @@ ByteCode[ByteCode.codes.invokestatic] = function(methodRef) {
 	var methodInfo = methodRef.getRef();
 
 	//Check to make sure it found a methodinfo
-	if(methodInfo == undefined) {
+	if(methodInfo === undefined) {
 		alert(methodRef.toString());
 		ByteCode.throwException("AbstractMethodError");
 		return;
@@ -1368,7 +1370,7 @@ ArrayType.type = {
 	8 : Data.type.BYTE,
 	9 : Data.type.SHORT,
 	10 : Data.type.INT,
-	11 : Data.type.LONG,
+	11 : Data.type.LONG
 };
 
 ByteCode[ByteCode.codes.pop] = function() {
