@@ -1,4 +1,4 @@
-body{
+body {
 	background-color:#DDD;
 	width:100%;
 	height:100%;
@@ -6,56 +6,53 @@ body{
 	padding:0;
 	font-family:Helvetica;
 }
-
-#main{
+.main {
 	height:100%;
 	background-color:white;
 	width:1200px;
 	margin:auto;
 	margin-top:10px;
 	border-radius: 5px;
-	
 }
-
-#header{
+.headerDiv {
 	font-size:2em;
 	padding:10px;
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
-	background: -moz-linear-gradient(top, rgba(17,110,224,1) 0%, rgba(35,83,138,1) 100%); /* FF3.6+ */
+	background-image: -moz-linear-gradient(top, rgba(17,110,224,1) 0%, rgba(35,83,138,1) 100%); /* FF3.6+ */
+	background-image: -webkit-linear-gradient(top, rgba(17,110,224,1) 0%, rgba(35,83,138,1) 100%);
+	background-image: -ms-linear-gradient(top, rgba(17,110,224,1) 0%, rgba(35,83,138,1) 100%);
+	background-image: -o-linear-gradient(top, rgba(17,110,224,1) 0%, rgba(35,83,138,1) 100%);
 	color:white;
 	border-bottom:1px #333 solid; 
 	text-shadow: 0 -1px 0 #555555;
 }
-#instructions{
+.instructions {
 	padding:10px;
 	font-size:small;
-	color:grey;
+	color:gray;
 	border:1px #BBB solid;
 	border-radius:5px;
 	margin:10px;
 }
-#upload{
+.upload{
 	padding-top:10px;
 	width:80%;
 	margin:auto;
 	text-align:center;
 }
-
-#program{
+.program{
 	padding:20px;
 }
-
-#consoleContainer{
+.consoleContainer{
 	width:700px;
 	height:500px;
 	background-color: black;
-	margin:0px;
-	padding:0px;
+	margin:0;
+	padding:0;
 	float:left;
 }
-
-#console{
+.console{
 	font-family:monospace;
 	height:475px;
 	width:675px;
@@ -66,19 +63,16 @@ body{
 	overflow:auto;
 	padding:10px;
 }
-
-#console pre{
+.console pre{
 	margin:1px;
 }
-
-#stackContainer{
+.stackContainer{
 	float:right;
 	height:500px;
 	width:440px;
 	overflow: auto;
 }
-
-#stack{
+.stack{
 	width:80%;
 	border-left:1px solid black;
 	border-right:1px solid black;
@@ -86,7 +80,6 @@ body{
 	margin:auto;
 	padding-top:3px;
 }
-
 .stackElement{
 	font-family:monospace;
 	font-size:small;

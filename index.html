@@ -9,12 +9,12 @@
 		<title>JAR JVM</title>
 	</head>
 	<body onload="consoleInit()">
-		<div id="main">
-			<div id="header">
+		<div class="main">
+			<div class="headerDiv">
 				JAR JVM 
 			</div>
-			<div id="upload">
-				<div id="instructions">
+			<div id="upload" class="upload">
+				<div class="instructions">
 					<ul>
 						<li>Upload the Java class files needed to run your program.  The file selection box will let you select multiple files</li>
 						<li>If you need help with the console type 'help'</li>
@@ -22,14 +22,14 @@
 					</ul></div>
 				<form><input type="file" id="files" size="50" name="files[]" multiple /></form>
 			</div>
-			<div id="program">
-				<div id="consoleContainer">
-					<div id="console" tabindex="1" onkeypress="userTyped(event)">
+			<div id="program" class="program">
+				<div id="consoleContainer" class="consoleContainer">
+					<div id="console" class="console" tabindex="1" onkeydown="userTypedSpecialCharacter(event)" onkeypress="userTyped(event)">
 
 					</div>
 				</div>
-				<div id="stackContainer">
-					<div id="stack" tabindex="2">
+				<div id="stackContainer" class="stackContainer">
+					<div id="stack" tabindex="2" class="stack">
 					</div>
 				</div>
 				<div style="clear:both">  </div>
@@ -50,14 +50,29 @@
 			include("Deflate.js");
 			include("FieldInfo.js");
 			include("Frame.js");
+			include("NativeFunctions.js");
 			include("MethodInfo.js");
 			include("MethodRun.js");
 			include("Instruction.js");
 			include("Descriptor.js");
-			include("NativeFunctions.js");
 			include("Long.js");
 			include("JavaClassReader.js");
 		
+			/**
+			 * Prevent Chrome from going back a page when backspace is hit.
+			 */
+			function suppressBackspace(evt) {
+			    evt = evt || window.event;
+			    var target = evt.target || evt.srcElement;
+
+			    if (evt.keyCode == 8 && !/input|textarea/i.test(target.nodeName)) {
+			        return false;
+			    }
+			}
+
+			document.onkeydown = suppressBackspace;
+			document.onkeypress = suppressBackspace;
+
 			DEBUG = false; //USED to turn off console text except for WARNING, ERROR, and OUTPUT
 		
 			STACK = new Stack();

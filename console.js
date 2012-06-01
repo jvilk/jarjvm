@@ -33,9 +33,7 @@ function consoleInit(){
 }
 
 function createMOTD(message){
-	printTextToConsole(message);
-	
-	createNewLine();
+	printTextToConsole(message + "\n");
 	printTextToConsole("If you need help with this console type 'help' and press Enter");
 	printTextToConsole("-------------------------------------------------------------------------------");
 }
@@ -60,16 +58,35 @@ function debugPrintToConsole(text){
 	}
 }
 
+/**
+ * Print an error to the console.
+ */
 function printErrorToConsole(text){
 	printToConsole(text, "red");
 }
 
+/**
+ * Print a warning to the console.
+ */
 function printWarningToConsole(text){
 	printToConsole(text, "yellow");
 }
 
+/**
+ * Print regular ole text to the console.
+ */
 function printTextToConsole(text){
 	printToConsole(text, "white");
+}
+
+/**
+ * Print user input to console.
+ * ALWAYS use this for user input or for placing text on the user input line!
+ * It draws the little white box where the user is typing.
+ */
+function printUserInputToConsole(text) {
+	printTextToCurrentLine(text);
+	//Draw little white box.
 }
 
 function createNewLine(){
@@ -98,7 +115,7 @@ function printTextToCurrentLine(text){
 }
 
 function removeLastCharFromCurrentLine(){
-		//Get the pre lines
+	//Get the pre lines
 	var console = document.getElementById("console");
 	var preElements = console.getElementsByTagName("div");
 	
@@ -108,6 +125,9 @@ function removeLastCharFromCurrentLine(){
 		subStr = lastPre.innerHTML.substr(0, lastPre.innerHTML.length - 1);
 		lastPre.innerHTML = subStr;
 	}
+
+	//Draw the little white box.
+
 	return;
 	
 }
@@ -140,7 +160,7 @@ function parsePossibleCommand(){
 function nextPreviousCommand(){
 	if(PREVIOUSCOMMANDS[COMMANDINDEX] !== undefined){
 		eraseCurrentLine();
-		printTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
+		printUserInputToConsole(PREVIOUSCOMMANDS[COMMANDINDEX]);
 		COMMANDINDEX = (COMMANDINDEX > 0) ? COMMANDINDEX -= 1 : 0; //Don't go below 0
 	}
 }
@@ -149,7 +169,7 @@ function nextCommand(){
 	COMMANDINDEX += 1;
 	eraseCurrentLine();
 	if(COMMANDINDEX < PREVIOUSCOMMANDS.length){
-		printTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
+		printUserInputToConsole(PREVIOUSCOMMANDS[COMMANDINDEX]);
 	}else{
 		COMMANDINDEX = PREVIOUSCOMMANDS.length - 1;
 	}
@@ -166,35 +186,49 @@ function eraseCurrentLine(){
 	return;
 }
 
+function userTypedSpecialCharacter(e) {
+	scrollToBottom("console");
+	e = (window.event) ? event : e;
+	var keynum = (e.keyCode) ? e.keyCode : e.charCode;
+
+	switch (keynum) {
+		case 8: //Backspace
+			removeLastCharFromCurrentLine();
+			return false;
+		case 13: //Enter
+			parsePossibleCommand();
+			return;
+		case 38: //Up Arrow
+			if (e.preventDefault) {
+				e.preventDefault();
+			}
+			nextPreviousCommand();
+			return;
+		case 40: //Down arrow
+			if (e.preventDefault) {
+				e.preventDefault();
+			}
+			nextCommand();
+			return;
+	}
+}
+
 function userTyped(e){
 	scrollToBottom("console");
 	e = (window.event) ? event : e;
 	var keynum = (e.keyCode) ? e.keyCode : e.charCode;
-	if(keynum == 8){ //Backspace
-		removeLastCharFromCurrentLine();
-		return;
+	//Ignore special characters. They are handled by onKeyDown.
+	switch (keynum) {
+		case 8: //Backspace
+		case 13: //Enter
+		case 38: //Up Arrow
+		case 40: //Down arrow
+			return;
 	}
-	if(keynum == 13){ //Enter
-		parsePossibleCommand();
-		return;
-	}
-	if(keynum == 38){ //Up Arrow
-		if (e.preventDefault){
-			e.preventDefault();
-		}
-		nextPreviousCommand();
-		return;
-	}
-	if(keynum == 40){
-		if (e.preventDefault){
-			e.preventDefault();
-		}
-		nextCommand();
-		return;
-	}
-	
+
+
 	var char_ = String.fromCharCode(keynum);
-	printTextToCurrentLine(char_);
+	printUserInputToConsole(char_);
 }
 
 function scrollToBottom(divName){
