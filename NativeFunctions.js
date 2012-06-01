@@ -47,7 +47,7 @@ function getArguments(methodDescriptor){
 	for(var i = 0;i<numOfArgs; i++) {
 		var variable = frame.locals[effectiveI];
 		//alert(variable);
-		//addTextToConsole("Local at " + effectiveI + ": " + variable.value);
+		//debugPrintToConsole("Local at " + effectiveI + ": " + variable.value);
 		methodArguments.push(variable);
 		//methodArguments.push(frame.pop());
 		if (methodArguments[i] !== undefined && (methodArguments[i].dataType == Data.type.LONG || methodArguments[i].dataType == Data.type.DOUBLE))
@@ -77,7 +77,7 @@ function getTheMethodDescriptor(methodDescriptor){
 
 //Prints nothing to the console
 registerNativeFunction("java/io/PrintStream", "printStuff", "()V", function(){
-	addStringToConsole("", ConsoleStrings.types.OUTPUT);
+	printTextToConsole("");
 	MethodRun.createReturn();
 	}
 );
@@ -87,9 +87,9 @@ registerNativeFunction("java/io/PrintStream", "printStuff", "(Z)V", function(){
 	var arrayOfArguments = getArguments("(B)V");
 	var booleanToPrint = arrayOfArguments[0];
 	if (booleanToPrint.value == 1){
-		addStringToConsole("True", ConsoleStrings.types.OUTPUT);
+		printTextToConsole("True");
 	}else{
-		addStringToConsole("False", ConsoleStrings.types.OUTPUT);
+		printTextToConsole("False");
 	}
 	MethodRun.createReturn();
 	}
@@ -99,7 +99,7 @@ registerNativeFunction("java/io/PrintStream", "printStuff", "(Z)V", function(){
 registerNativeFunction("java/io/PrintStream", "printStuff", "(C)V", function(){
 	var arrayOfArguments = getArguments("(C)V");
 	var charToPrint = arrayOfArguments[0];
-	addStringToConsole(String.fromCharCode(charToPrint.value), ConsoleStrings.types.OUTPUT);
+	printTextToConsole(String.fromCharCode(charToPrint.value));
 	MethodRun.createReturn();
 	}
 );
@@ -108,7 +108,7 @@ registerNativeFunction("java/io/PrintStream", "printStuff", "(C)V", function(){
 registerNativeFunction("java/io/PrintStream", "printStuff", "(I)V", function(){
 	var arrayOfArguments = getArguments("(I)V");
 	var intToPrint = arrayOfArguments[0];
-	addStringToConsole(intToPrint.value.toString(), ConsoleStrings.types.OUTPUT);
+	printTextToConsole(intToPrint.value.toString());
 	MethodRun.createReturn();
 	}
 );
@@ -117,7 +117,7 @@ registerNativeFunction("java/io/PrintStream", "printStuff", "(I)V", function(){
 registerNativeFunction("java/io/PrintStream", "printStuff", "(J)V", function(){
 	var arrayOfArguments = getArguments("(J)V");
 	var longToPrint = arrayOfArguments[0];
-	addStringToConsole(longToPrint.toStringOld(), ConsoleStrings.types.OUTPUT);
+	printTextToConsole(longToPrint.toStringOld());
 	MethodRun.createReturn();
 	}
 );
@@ -125,7 +125,7 @@ registerNativeFunction("java/io/PrintStream", "printStuff", "(J)V", function(){
 registerNativeFunction("java/io/PrintStream", "printStuff", "(D)V", function(){
 	var arrayOfArguments = getArguments("(D)V");
 	var doubleToPrint = arrayOfArguments[0];
-	addStringToConsole(doubleToPrint.value.toString(), ConsoleStrings.types.OUTPUT);
+	printTextToConsole(doubleToPrint.value.toString());
 	MethodRun.createReturn();
 	}
 );
@@ -134,27 +134,27 @@ registerNativeFunction("java/io/PrintStream", "printStuff", "(D)V", function(){
 registerNativeFunction("java/io/PrintStream", "printStuff", "(F)V", function(){
 	var arrayOfArguments = getArguments("(F)V");
 	var floatToPrint = arrayOfArguments[0];
-	addStringToConsole(floatToPrint.value.toString(), ConsoleStrings.types.OUTPUT);
+	printTextToConsole(floatToPrint.value.toString());
 	MethodRun.createReturn();
 	}
 );
 
 
 function printCharArrayToConsole(arrayToPrint){
-	addStringToConsole("[", ConsoleStrings.types.OUTPUT);
+	printTextToConsole("[");
 	//Not sure if length or
 	for (var i = 0; i < arrayToPrint.length; i++){
 		if(arrayToPrint[i] === undefined){
-			addTextToCurrentLine(' ');
+			printTextToCurrentLine(' ');
 		}else{
-			addTextToCurrentLine(String.fromCharCode(arrayToPrint[i].value));
+			printTextToCurrentLine(String.fromCharCode(arrayToPrint[i].value));
 		}
 		
 		if(i != arrayToPrint.length - 1){
-			addTextToCurrentLine(',');
+			printTextToCurrentLine(',');
 		}
 	}
-	addTextToCurrentLine(']');
+	printTextToCurrentLine(']');
 }
 
 //Print char[]
@@ -174,11 +174,11 @@ registerNativeFunction("java/io/PrintStream", "printStuff", "(Ljava/lang/String;
 	//alert(arrayToPrint + ": " + arrayToPrint.array);
 	arrayToPrint = arrayToPrint.array;
 	
-	addStringToConsole("", ConsoleStrings.types.OUTPUT);
+	printTextToConsole("");
 	//Not sure if length or
 	for (var i = 0; i < arrayToPrint.length; i++){
 		if(arrayToPrint[i] !== undefined){
-			addTextToCurrentLine(String.fromCharCode(arrayToPrint[i].value));
+			printTextToCurrentLine(String.fromCharCode(arrayToPrint[i].value));
 		}
 	}
 	MethodRun.createReturn();

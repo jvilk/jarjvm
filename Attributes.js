@@ -35,7 +35,7 @@ function makeAttributes(javaClassReader, attributesCount) {
                 attributes[i] = new DeprecatedAttribute(javaClassReader, attributeNameIndex);
                 break;
             default:
-                //addErrorToConsole("WARNING: Unrecognized attribute " + attributeName + ".");
+                //printErrorToConsole("WARNING: Unrecognized attribute " + attributeName + ".");
                 attributes[i] = new GenericAttribute(javaClassReader, attributeNameIndex);
                 break;
         }
@@ -50,15 +50,15 @@ function Attribute(javaClassReader, attributeNameIndex) {
     this.attributeLength = javaClassReader.getUintField(4);
     
     //Prototype.
-    this.print = function() {};
+    this.toString = function() {};
 }
 
 function GenericAttribute(javaClassReader, attributeNameIndex) {
     inherits(this, "Attribute", javaClassReader, attributeNameIndex);
     this.info_ = javaClassReader.getUintField(this.attributeLength);
     
-    this.print = function() {
-        addTextToConsole("\tGeneric: " + this.attributeName);
+    this.toString = function() {
+        return "\tGeneric: " + this.attributeName;
     };
 }
 
@@ -68,8 +68,8 @@ function SourceFileAttribute(javaClassReader, attributeNameIndex) {
     this.sourceFileIndex = javaClassReader.getUintField(2);
     this.sourceFile = CONSTANTPOOL.getUTF8Info(this.sourceFileIndex);
     
-    this.print = function() {
-        addTextToConsole("\tSourceFile: " + this.attributeName + " " + this.sourceFile);
+    this.toString = function() {
+        return "\tSourceFile: " + this.attributeName + " " + this.sourceFile;
     };
 }
 
@@ -78,8 +78,8 @@ function ConstantValueAttribute(javaClassReader, attributeNameIndex) {
     assert(this.attributeLength == 2);
     this.constantValueIndex = javaClassReader.getUintField(2);
     this.constantValue = CONSTANTPOOL[this.constantValueIndex];
-    this.print = function() {
-        addTextToConsole("\tConstantValue: " + this.attributeName + " " + this.constantValue);
+    this.toString = function() {
+        return "\tConstantValue: " + this.attributeName + " " + this.constantValue;
     };
 }
 
@@ -405,7 +405,7 @@ function CodeAttribute(javaClassReader, attributeNameIndex) {
         
         while (!CONTEXTSWITCH) {
             currentInst = this.code[PC];
-            addTextToConsole("Bytecode Opcode: " + opcodeToString(currentInst.opcode));
+            debugPrintToConsole("Bytecode Opcode: " + opcodeToString(currentInst.opcode));
             PC += currentInst.length;
             currentInst.execute();
         }
@@ -445,9 +445,23 @@ function CodeAttribute(javaClassReader, attributeNameIndex) {
         MethodRun.throwException(exception);
     };
     
-    //TODO: Flesh out code output.
-    this.print = function() {
-        addTextToConsole("\tCode: " + this.attributeName);
+    /**
+     * Returns a string representation for printing. errorPC is an option
+     * argument -- if specified, the output prints an arrow pointing to the
+     * line of code that caused an error.
+     */
+    this.toString = function(errorPC) {
+        if (errorPC === undefined) errorPC = -1;
+
+        var i;
+        var output = [];
+
+        for (i = 0; i < this.codeLength; ) {
+            output.push(this.code[i].toString(i === errorPC), "\n");
+            i += this.code[i].length;
+        }
+
+        return output.join("");
     };
 }
 
@@ -471,8 +485,8 @@ function ExceptionAttribute(javaClassReader, attributeNameIndex) {
     }
     
     //TODO: Flesh out attribute output.
-    this.print = function() {
-        addTextToConsole("\tException: " + this.attributeName);
+    this.toString = function() {
+        return "\tException: " + this.attributeName;
     };
 }
 
@@ -488,8 +502,8 @@ function LineNumberTableAttribute(javaClassReader, attributeNameIndex) {
     }
     
     //TODO: Flesh out attribute output.
-    this.print = function() {
-        addTextToConsole("\tLineNumberTable: " + this.attributeName);
+    this.toString = function() {
+        return "\tLineNumberTable: " + this.attributeName;
     };
 }
 
@@ -510,8 +524,8 @@ function LocalVariableTable(javaClassReader, attributeNameIndex) {
     }
     
     //TODO: Flesh out attribute output.
-    this.print = function() {
-        addTextToConsole("\tLocalVariableTable: " + this.attributeName);
+    this.toString = function() {
+        return "\tLocalVariableTable: " + this.attributeName;
     };
 }
 
@@ -530,8 +544,8 @@ function SyntheticAttribute(javaClassReader, attributeNameIndex) {
     assert(this.attributeLength === 0);
     
     //TODO: Flesh out attribute output.
-    this.print = function() {
-        addTextToConsole("\tSynthetic: " + this.attributeName);
+    this.toString = function() {
+        return "\tSynthetic: " + this.attributeName;
     };
 }
 
@@ -546,8 +560,8 @@ function InnerClassAttribute(javaClassReader, attributeNameIndex) {
     }
     
     //TODO: Flesh out attribute output.
-    this.print = function() {
-        addTextToConsole("\tInnerClass: " + this.attributeName);
+    this.toString = function() {
+        return "\tInnerClass: " + this.attributeName;
     };
 }
 
@@ -566,7 +580,7 @@ function DeprecatedAttribute(javaClassReader, attributeNameIndex) {
     assert(this.attributeLength === 0);
     
     //TODO: Flesh out attribute output.
-    this.print = function() {
-        addTextToConsole("\tDeprecated: " + this.attributeName);
+    this.toString = function() {
+        return "\tDeprecated: " + this.attributeName;
     };
 }

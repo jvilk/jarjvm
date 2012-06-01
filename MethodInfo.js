@@ -26,7 +26,7 @@ function MethodInfo(javaClassReader, classInfo) {
     {
         this.execute = getNativeFunction(this.classInfo.thisClassName, this.name, this.descriptor);
         this.exception = function() {
-            addErrorToConsole("JVM ERROR: The JVM tried to look for an exception handler in a native function.");
+            printErrorToConsole("JVM ERROR: The JVM tried to look for an exception handler in a native function.");
         };
     }
 }
@@ -57,48 +57,45 @@ MethodInfo.prototype.isConstructor = function() {
 };
 
 /**
- * Pretty print this method's signature to the terminal.
+ * Return a string representation of the entire method.
+ * If errorPC is specified, then we also add an arrow to the output at that
+ * line to point it out as the cause of our grief.
  */
-MethodInfo.prototype.print = function() {
-    var output = "\t";
-    
-    //Step 1: Get a string representation of the access flags.
-    for (var x in MethodInfo.AccessFlags)
-    {
-        if (this.hasFlag(MethodInfo.AccessFlags[x]))
-        {
-            output += MethodInfo.AccessFlagStrings[x] + " ";
+MethodInfo.prototype.toStringWithCode = function(errorPC) {
+    //Get the signature.
+    var output = [];
+    output.push(this.toString());
+
+    var numAttributes = this.attributes.length;
+    var i;
+    for (i= 0; i < numAttributes; i++) {
+        //We only care about the one Code attribute.
+        if (this.attributes[i].attributeName == "Code") {
+            output.push("\n", this.attributes[i].toString(errorPC));
+            break;
         }
     }
-    
-    //Step 2: Get method name.
-    output += this.name + " ";
-    
-    //Step 3: Get method signature.
-    output += this.descriptor;
-    
-    if (this.hasFlag(MethodInfo.AccessFlags.NATIVE))
-        addErrorToConsole(output);
-    else
-        addTextToConsole(output);
+
+    return output.join("");
 };
 
 /**
- * Convert to string.
+ * Get a string representation of this method (namely, its signature).
+ * For the full code, try toStringWithCode
  */
 MethodInfo.prototype.toString = function() {
-    var output = "";
+    var output = [];
     
     for (var x in MethodInfo.AccessFlags)
     {
         if (this.hasFlag(MethodInfo.AccessFlags[x]))
         {
-            output += MethodInfo.AccessFlagStrings[x] + " ";
+            output.push(MethodInfo.AccessFlagStrings[x], " ");
         }
     }
-    output += this.classInfo.thisClassName + "." + this.name + " " + this.descriptor;
+    output.push(this.classInfo.thisClassName, ".", this.name, " ", this.descriptor);
     
-    return output;
+    return output.join("");
 };
 
 /**
@@ -147,17 +144,17 @@ MethodInfo.prototype.execute = function() {
     //Begin static initialization of this method's class, unless this
     //is the static initializer.
     if (!this.isClinit()) {
-        //addTextToConsole("Initializing my class...");
+        //debugPrintToConsole("Initializing my class...");
         this.classInfo.initialize();
     }
     
-    //addTextToConsole("Initialized!");
+    //debugPrintToConsole("Initialized!");
     
     //PC of 0 means that execution is starting, not resuming.
     //Print a warning if calling a deprecated method.
     if (PC === 0 && this.isDeprecated() && !this.deprecationWarned)
     {
-        addErrorToConsole("WARNING: Using deprecated method \"" + this.name + "\".");
+        printErrorToConsole("WARNING: Using deprecated method \"" + this.name + "\".");
         //We only want to warn once per method.
         this.deprecationWarned = true;
     }
@@ -166,7 +163,7 @@ MethodInfo.prototype.execute = function() {
     assert(codeAttribute !== undefined);
     
     codeAttribute.execute();
-    //addTextToConsole("FINISHED execution!");
+    //debugPrintToConsole("FINISHED execution!");
 };
 
 /**

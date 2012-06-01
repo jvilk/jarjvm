@@ -28,7 +28,7 @@ function MethodRun(type, pc, exception) {
     else
         this.exception = undefined;
     
-    //addTextToConsole("Creating a methodrun " + this.type + " for " + STACK.currentFrame.methodInfo + "  with PC " + this.pc);
+    //debugPrintToConsole("Creating a methodrun " + this.type + " for " + STACK.currentFrame.methodInfo + "  with PC " + this.pc);
 }
 
 /**
@@ -37,7 +37,7 @@ function MethodRun(type, pc, exception) {
  */
 MethodRun.prototype.execute = function() {
     PC = this.pc;
-    addTextToConsole("Executing a methodRun for " + STACK.currentFrame.methodInfo + " with PC " + this.pc);
+    debugPrintToConsole("Executing a methodRun for " + STACK.currentFrame.methodInfo + " with PC " + this.pc);
     if (this.type == MethodRun.type.EXCEPTION)
         STACK.currentFrame.methodInfo.exception(this.exception);
     else
@@ -88,7 +88,7 @@ MethodRun.createCall = function(methodInfo) {
     {
         STACK.currentFrame.setLocal(effectiveI, args[i]);
         effectiveI = STACK.currentFrame.locals.length;
-        addTextToConsole("Arg " + i + ": " + args[i]);
+        debugPrintToConsole("Arg " + i + ": " + args[i]);
     }
     
     //Create a MethodRun object.
@@ -154,13 +154,13 @@ MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
     while (STACK.stack.length != oldStackLength)
     {
         //Pop off the methodRun object.
-        //addTextToConsole("Popping off a resume");
+        //debugPrintToConsole("Popping off a resume");
         var method = STACK.currentFrame.pop();
         try
         {
             //Execute it.
             method.execute();
-            //addTextToConsole("Finished a function");
+            //debugPrintToConsole("Finished a function");
         }
         catch (err)
         {
@@ -180,7 +180,7 @@ MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
                 if (STACK.empty())
                 {
                     //TODO: Handle unhandled exceptions here. toString? Call stack?
-                    addErrorToConsole("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".");
+                    printErrorToConsole("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".");
                 }
                 
                 //If the stack is not empty, ignore the exception; it may still be caught.
@@ -193,7 +193,7 @@ MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
         }
     }
 
-    //addTextToConsole("FINISHED A NATIVE CALL");
+    //debugPrintToConsole("FINISHED A NATIVE CALL");
 
     //Pop off our dummy resume object.
     STACK.currentFrame.pop();

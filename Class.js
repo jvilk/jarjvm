@@ -14,7 +14,7 @@ function Class(javaClassReader) {
 
     //Why not?
     if (magic != 0xCAFEBABE) {
-        addErrorToConsole("ERROR: Magic value 0xCAFEBABE not found! Instead: " + magic);
+        printErrorToConsole("ERROR: Magic value 0xCAFEBABE not found! Instead: " + magic);
     }
 
     //u2 minor_version;
@@ -92,9 +92,6 @@ function Class(javaClassReader) {
     {
         this.fields[i]._initializeDefaultValue();
     }
-    
-    //Call the print function.
-    //this.print();
 }
 
 /**
@@ -163,7 +160,7 @@ Class.prototype.initialize = function() {
     //Deprecation check
     if (this.isDeprecated())
     {
-        addErrorToConsole("WARNING: Using deprecated class \"" + this.name + "\".");
+        printErrorToConsole("WARNING: Using deprecated class \"" + this.name + "\".");
         this.deprecationWarn = true;
     }
     
@@ -212,66 +209,67 @@ Class.prototype.hasFlag = function(mask) {
 
 /**
  * Prints class information to the terminal.
+ * TODO: Break up prototype toString functionality into separate function.
  */
-Class.prototype.print = function() {
+Class.prototype.toString = function() {
     var i;
+    var output = [];
 
     //CONSTRUCT PROTOTYPE
-    addTextToConsole("");
     //Access Flags
     for (var x in Class.AccessFlags)
     {
         if (this.hasFlag(Class.AccessFlags[x]))
         {
-            addTextToCurrentLine(Class.AccessFlagStrings[x] + " ");
+            output.push(Class.AccessFlagStrings[x], " ");
         }
     }
     
     //This Class
-    addTextToCurrentLine(this.thisClassName + " ");
+    output.push(this.thisClassName, " ");
     //Super Class
     if (this.superClassIndex > 0)
     {
-        addTextToCurrentLine("extends " + this.superClassName + " ");
+        output.push("extends ", this.superClassName, " ");
     }
     //Interfaces
-    if (this.interfacesCount > 0) addTextToCurrentLine("implements ");
+    if (this.interfacesCount > 0) output.push("implements ");
     for (i = 0; i < this.interfacesCount; i++)
     {
-        addTextToCurrentLine(this.interfaces[i].className + " ");
+        output.push(this.interfaces[i].className, " ");
     }
-    addTextToConsole("\n");
+
+    output.push("\n\n");
     
-    //this.constantPool.print();
-    //addTextToConsole("\n");
+    //output.push(this.constantPool.toString(), "\n");
     
-    addTextToConsole("Fields:");
+    output.push("Fields:\n");
     //Fields
     for (i = 0; i < this.fieldsCount; i++)
     {
-        this.fields[i].print();
+        output.push(fields[i].toString(), "\n");
     }
 
-    addTextToConsole("\n");
-    addTextToConsole("Methods:");
+    output.push("\n\n");
+    output.push("Methods:\n");
     //Methods
     for (i = 0; i < this.methodsCount; i++)
     {
-        this.methods[i].print();
+        output.push(this.methods[i].toString(), "\n");
     }
     
-    addTextToConsole("\n");
-    addTextToConsole("Attributes:");
+    output.push("\n\n");
+    output.push("Attributes:\n");
     //Attributes
     for (i = 0; i < this.attributesCount; i++)
     {
-        this.attributes[i].print();
+        output.push(attributes[i].toString(), "\n");
     }
     
-    addTextToConsole("\n");
-    addTextToConsole("END CLASS");
+    output.push("\n\n");
+    output.push("END CLASS\n");
     
-    promptForUserInput();
+    return output.join("");
 };
 
 /**
@@ -315,15 +313,13 @@ Class.prototype.implementsInterface = function(interfaceName) {
  * values.
  */
 Class.prototype.getInstantiation = function() {
-    var object = new JavaObject(this);
-    this._populateObjectFields(object);
-    return object;
+    return new JavaObject(this);
 };
 
 /**
  * Populate a Java object of this class type with the
  * fields of this class and its super class (recursive).
- * Used internally by getInstantiation.
+ * Should only be called by JavaObject's constructor!
  */
 Class.prototype._populateObjectFields = function(object) {
     //object.fields = new Array();
@@ -357,7 +353,7 @@ Class.prototype.getMethod = function(name, descriptor)
     {
         var method = this.methods[i];
         if(method.name == name){
-            addTextToConsole(method.descriptor);
+            debugPrintToConsole(method.descriptor);
         }
         if (method.name == name && method.descriptor == descriptor)
             return method;
@@ -440,7 +436,7 @@ Class.getClass = function(className) {
     if (className in CLASSES)
         return CLASSES[className];
         
-    addTextToConsole("Loading class: " + className);
+    debugPrintToConsole("Loading class: " + className);
  
     var url = document.URL; //Url now has the url up to the current directory without the trailing slash
     url = url.substr(0, url.lastIndexOf('/'));

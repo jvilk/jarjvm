@@ -70,7 +70,7 @@ function ConstantPool(javaClassReader) {
                 this[i] = new ConstantUTF8Info(length, string);
                 break;
             default:
-                addErrorToConsole("ERROR: Unable to determine the 'tag' element of a cp_info struct: " + tag + ".");
+                printErrorToConsole("ERROR: Unable to determine the 'tag' element of a cp_info struct: " + tag + ".");
                 break;
         }
     }
@@ -111,13 +111,16 @@ ConstantPool.prototype.getClassInfo = function(index) {
 /**
  * Print the constant pool contents to the terminal.
  */
-ConstantPool.prototype.print = function() {
-    addTextToConsole("Constant Pool Contents:");
+ConstantPool.prototype.toString = function() {
+    var output = [];
+    output.push("Constant Pool Contents:\n");
     for (var i = 1; i < this.count; i++)
     {
-        addTextToConsole("\t" + i + " ");
-        this[i].print();
+        output.push("\t" + i + " ");
+        output.push(this[i].toString(), "\n");
     }
+
+    return output.join("");
 };
 
 /*The parent object for all the Constant Pool objects
@@ -128,7 +131,7 @@ function ConstantPoolInfo(tagType) {
     this.tag = tagType;
     //Part of the "interface" of this type. Resolves references to the constant pool to objects.
     this.resolveReferences = function(constantPool) { };
-    this.print = function() { };
+    this.toString = function() { };
 }
 
 ConstantPoolInfo.tags = {
@@ -159,8 +162,8 @@ function ConstantClassInfo(nameIndex) {
         this.name = CONSTANTPOOL.getUTF8Info(this.nameIndex);
     };
     
-    this.print = function() {
-        addTextToCurrentLine("class " + this.name);
+    this.toString = function() {
+        return "class " + this.name;
     };
 }
 
@@ -221,36 +224,33 @@ function ConstantRefInfo(refType, classIndex, nameAndTypeIndex) {
         if (this._class !== undefined)
             return this._class;
             
-        //addTextToConsole("CPRef ClassIndex: " + this.classIndex);
+        //debugPrintToConsole("CPRef ClassIndex: " + this.classIndex);
         this._class = Class.getClass(this.className);
         
         return this._class;
     };
     
     this.toString = function() {
-        var output = "";
+        var output = [];
         
         switch(this.tag)
         {
             case ConstantPoolInfo.tags.FIELDREF:
-                output += "fieldref ";
+                output.push("fieldref ");
                 break;
             case ConstantPoolInfo.tags.METHODREF:
-                output += "methodref ";
+                output.push("methodref ");
                 break;
             case ConstantPoolInfo.tags.INTERFACEMETHODREF:
-                output += "interfacemethodref ";
+                output.push("interfacemethodref ");
                 break;
             default:
-                output += "unknownref ";
+                output.push("unknownref ");
                 break;
         }
         
-        return output + this.className + " " + this.nameAndType.name + " " + this.nameAndType.descriptor;
-    };
-    
-    this.print = function() {
-        addTextToCurrentLine(this.toString());
+        output.push(this.className, " ", this.nameAndType.name, " ", this.nameAndType.descriptor);
+        return output.join("");
     };
 }
 
@@ -264,8 +264,8 @@ function ConstantStringInfo(stringIndex) {
         this.string = CONSTANTPOOL.getUTF8Info(this.stringIndex);
     };
     
-    this.print = function() {
-        addTextToCurrentLine("string " + this.string);
+    this.toString = function() {
+        return "string " + this.string;
     };
 }
 
@@ -274,7 +274,7 @@ function ConstantNumberInfo(refType, value) {
     inherits(this,"ConstantPoolInfo", refType);
     this.value = value;
     
-    this.print = function() {
+    this.toString = function() {
         var output = "";
         
         switch(this.tag)
@@ -290,7 +290,7 @@ function ConstantNumberInfo(refType, value) {
                 break;
         }
         
-        addTextToCurrentLine(output + this.value);
+        return output + this.value;
     };
 }
 
@@ -299,7 +299,7 @@ function ConstantBigNumberInfo(refType, value) {
     inherits(this,"ConstantPoolInfo", refType);
     this.value = value;
     
-    this.print = function() {
+    this.toString = function() {
         var output = "";
         switch(this.tag)
         {
@@ -314,7 +314,7 @@ function ConstantBigNumberInfo(refType, value) {
                 break;
         }
         
-        addTextToCurrentLine(output + this.value);
+        return output + this.value;
     };
 }
 
@@ -330,8 +330,8 @@ function ConstantNameAndTypeInfo(nameIndex, descriptorIndex) {
         this.descriptor = CONSTANTPOOL.getUTF8Info(this.descriptorIndex);
     };
     
-    this.print = function() {
-        addTextToCurrentLine("NameAndTypeInfo" + this.name + " " + this.descriptor);
+    this.toString = function() {
+        return "NameAndTypeInfo" + this.name + " " + this.descriptor;
     };
 }
 
@@ -340,7 +340,7 @@ function ConstantUTF8Info(length, string) {
     this.length = length;
     this.string = string;
     
-    this.print = function() {
-        addTextToCurrentLine("UTF8 " + this.string);
+    this.toString = function() {
+        return "UTF8 " + this.string;
     };
 }

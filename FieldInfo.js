@@ -131,7 +131,7 @@ FieldInfo.prototype._initializeDefaultValue = function() {
         var constVal = this.constantValueAttribute;
         if (constVal.tag == ConstantPoolInfo.tags.STRING)
         {
-            //addTextToConsole("Initializing string field...");
+            //debugPrintToConsole("Initializing string field...");
             this.value = getJavaString(constVal.string);
         }
         else
@@ -151,26 +151,29 @@ FieldInfo.prototype.hasFlag = function(mask) {
 /**
  * Prints the field to the console.
  */
-FieldInfo.prototype.print = function() {
-    addTextToConsole("\t");
+FieldInfo.prototype.toString = function() {
+    var output = [];
+    output.push("\t");
     
     //Access information
     for (var x in FieldInfo.AccessFlags)
     {
         if (this.hasFlag(FieldInfo.AccessFlags[x]))
-            addTextToCurrentLine(FieldInfo.AccessFlagStrings[x] + " ");
+            output.push(FieldInfo.AccessFlagStrings[x], " ");
     }
     
     //Name + descriptor
-    addTextToCurrentLine(this.name + " " + this.descriptor + " ");
+    output.push(this.name, " ", this.descriptor, " ");
     
     
-    //addTextToConsole("Attributes:");
+    //output.push("Attributes:\n");
     //Attributes??
     //for (var i = 0; i < this.attributesCount; i++)
     //{
-    //  this.attributes[i].print();
+    //  output.push(this.attributes[i].toString(), "\n");
     //}
+
+    return output.join("");
 };
 
 /**

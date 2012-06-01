@@ -40,7 +40,7 @@ function assert(assertion) {
     if (!assertion)
     {
         var stackTrace = printStackTrace();
-        addErrorToConsole("Assertion Failed:\n" + stackTrace);
+        printErrorToConsole("Assertion Failed:\n" + stackTrace);
         throw "Assertion Failed:\n" + stackTrace;
     }
 }

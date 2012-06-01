@@ -13,6 +13,7 @@ consoleCommands["_popelement"] = popElement;
 consoleCommands["listloadedclasses"] = listLoadedClasses;
 consoleCommands["clearstack"] = clearstack;
 consoleCommands["enabledebug"] = enableDebug;
+consoleCommands["printmethod"] = printMethod;
 
 consoleCommandsDescriptions = [];
 consoleCommandsDescriptions["help"] = "Prints the help menu";
@@ -23,6 +24,7 @@ consoleCommandsDescriptions["_popelement"] = "";
 consoleCommandsDescriptions["listloadedclasses"] = "List all the currently loaded Java classes";
 consoleCommandsDescriptions["clearstack"] = "Clears the debugging stack";
 consoleCommandsDescriptions["enabledebug"] = "Enables debugging output (Greatly affects speed)";
+consoleCommandsDescriptions["printmethod"] = "Prints the bytecode of the specified method. Specify the full classname, method name, and descriptor as arguments.";
 
  
 function consoleInit(){
@@ -31,74 +33,43 @@ function consoleInit(){
 }
 
 function createMOTD(message){
-	addProgressToConsole(message);
+	printTextToConsole(message);
 	
 	createNewLine();
-	addProgressToConsole("If you need help with this console type 'help' and press Enter");
-	addProgressToConsole("-------------------------------------------------------------------------------");
+	printTextToConsole("If you need help with this console type 'help' and press Enter");
+	printTextToConsole("-------------------------------------------------------------------------------");
 }
 
-var ConsoleStrings = [];
-ConsoleStrings.types = {
-	TEXT: 0,
-	WARNING: 1,
-	ERROR: 2,
-	OUTPUT: 3,
-	PROGRESS: 4
-};
-/*
-function addTextToCurrentLine(text){
-	//Get the pre lines
+/**
+ * This is the only method that should be actually adding text to the console.
+ * All other methods that add text to the console should be a frontend to this
+ * method.
+ */
+function printToConsole(text, color) {
 	var console = document.getElementById("console");
-	var preElements = console.getElementsByTagName("div");
-	
-	//Get the last one
-	var lastPre = preElements[preElements.length - 1];
-	lastPre.innerHTML += escapeHTML(text);*/
-function addStringToConsole(text, type){
-	var console = document.getElementById("console");
-	var content = '';
-	switch(type){
-		case ConsoleStrings.types.TEXT:
-			if(DEBUG){
-				content = "<div style='white-space:pre-wrap'>" + escapeHTML(text) + "</div>";
-			}
-			break;
-		case ConsoleStrings.types.PROGRESS:
-			content = "<div style='white-space:pre-wrap'>" + escapeHTML(text) + "</div>";
-			break;
-		case ConsoleStrings.types.WARNING:
-			content = "<div class='warning' style='white-space:pre-wrap'>" + escapeHTML(text) + "</div>";
-			break;
-		case ConsoleStrings.types.ERROR:
-			content = "<div class='error' style='white-space:pre-wrap'>" + escapeHTML(text) + "</div>";
-			break;
-		case ConsoleStrings.types.OUTPUT:
-			content = "<div class='output' style='white-space:pre-wrap'>" + escapeHTML(text) + "</div>";
-			break;
-	}
-	console.innerHTML += content;
+	console.innerHTML += "<div style='white-space:pre-wrap;color:" + color + "'>" + escapeHTML(text) + "</div>";
 	scrollToBottom("console");
 }
 
-function addTextToConsole(text){
-	addStringToConsole(text, ConsoleStrings.types.TEXT);
+/**
+ * Print debug information to the console.
+ */
+function debugPrintToConsole(text){
+	if (DEBUG) {
+		printToConsole(text, "white");
+	}
 }
 
-function addErrorToConsole(text){
-	addStringToConsole(text, ConsoleStrings.types.ERROR);
+function printErrorToConsole(text){
+	printToConsole(text, "red");
 }
 
-function addWarningToConsole(text){
-	addStringToConsole(text, ConsoleStrings.types.WARNING);
+function printWarningToConsole(text){
+	printToConsole(text, "yellow");
 }
 
-function addOutputToConsole(text){
-	addStringToConsole(text, ConsoleStrings.types.OUTPUT);
-}
-
-function addProgressToConsole(text){
-	addStringToConsole(text, ConsoleStrings.types.PROGRESS);
+function printTextToConsole(text){
+	printToConsole(text, "white");
 }
 
 function createNewLine(){
@@ -109,14 +80,14 @@ function createNewLine(){
 
 function promptForUserInput(){
 	createNewLine();
-	addProgressToConsole(USERPROMPT);
+	printTextToConsole(USERPROMPT);
 	scrollToBottom("console");
 	return;
 
 }
 
 
-function addTextToCurrentLine(text){
+function printTextToCurrentLine(text){
 	//Get the pre lines
 	var console = document.getElementById("console");
 	var preElements = console.getElementsByTagName("div");
@@ -161,7 +132,7 @@ function parsePossibleCommand(){
 			return;
 		}
 	}
-	addErrorToConsole("Unknown Command");
+	printErrorToConsole("Unknown Command");
 	promptForUserInput();
 	return;
 }
@@ -169,7 +140,7 @@ function parsePossibleCommand(){
 function nextPreviousCommand(){
 	if(PREVIOUSCOMMANDS[COMMANDINDEX] !== undefined){
 		eraseCurrentLine();
-		addTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
+		printTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
 		COMMANDINDEX = (COMMANDINDEX > 0) ? COMMANDINDEX -= 1 : 0; //Don't go below 0
 	}
 }
@@ -178,7 +149,7 @@ function nextCommand(){
 	COMMANDINDEX += 1;
 	eraseCurrentLine();
 	if(COMMANDINDEX < PREVIOUSCOMMANDS.length){
-		addTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
+		printTextToCurrentLine(PREVIOUSCOMMANDS[COMMANDINDEX]);
 	}else{
 		COMMANDINDEX = PREVIOUSCOMMANDS.length - 1;
 	}
@@ -223,7 +194,7 @@ function userTyped(e){
 	}
 	
 	var char_ = String.fromCharCode(keynum);
-	addTextToCurrentLine(char_);
+	printTextToCurrentLine(char_);
 }
 
 function scrollToBottom(divName){
@@ -235,18 +206,18 @@ function scrollToBottom(divName){
 /***Other console Commands ***/
 
 function printHelpMenu(){
-	addProgressToConsole("List of Valid Console Commands:");
+	printTextToConsole("List of Valid Console Commands:");
 	createNewLine();
 	for(var command in consoleCommands){
 		if(command.charAt(0) != '_'){
-			addProgressToConsole(command + " - " + consoleCommandsDescriptions[command]);
+			printTextToConsole(command + " - " + consoleCommandsDescriptions[command]);
 		}
 	}
 	promptForUserInput();
 }
 
 function whoAmI(){
-	addProgressToConsole("Probably Emery Berger, but I don't know why you're asking me that");
+	printTextToConsole("Probably Emery Berger, but I don't know why you're asking me that");
 	promptForUserInput();
 }
 
@@ -269,7 +240,7 @@ function popElement(){
 			var lastFrame = frames[frames.length -1];
 			stack.removeChild(lastFrame);
 		}else{
-			addErrorToConsole("No Frames To Pop");
+			printErrorToConsole("No Frames To Pop");
 		}
 	}
 }
@@ -278,12 +249,12 @@ function popElement(){
  * Executes the main function of a given class.
  */
 function execute(className) { //+ arguments
-	//addTextToConsole("Is stack empty? " + STACK.empty());
+	//debugPrintToConsole("Is stack empty? " + STACK.empty());
 	
 	//Ensure the class exists.
 	if (!(className in CLASSES))
 	{
-		addErrorToConsole("ERROR: " + className + " is not currently loaded.");
+		printErrorToConsole("ERROR: " + className + " is not currently loaded.");
 		return;
 	}
 	
@@ -296,7 +267,7 @@ function execute(className) { //+ arguments
 	for (var i = 1; i < arguments.length; i++)
 	{
 		//Create a String object.
-		addProgressToConsole("Creating string w/ text " + arguments[i]);
+		printTextToConsole("Creating string w/ text " + arguments[i]);
 		var stringObj = getJavaString(arguments[i]);
 		
 		args.set(i, stringObj);
@@ -320,7 +291,7 @@ function execute(className) { //+ arguments
 				if (STACK.empty())
 				{
 					//TODO: Handle unhandled exceptions here. toString? Call stack?
-					addErrorToConsole("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".");
+					printErrorToConsole("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".");
 				}
 				
 				//If the stack is not empty, ignore the exception; it may still be caught.
@@ -328,14 +299,19 @@ function execute(className) { //+ arguments
 			//Otherwise, it's a JavaScript exception! Print it.
 			else
 			{
-				addErrorToConsole("JVM Exception: " + err);
+				printErrorToConsole("JVM Exception: " + err);
+
+				printTextToConsole(STACK.currentFrame.methodInfo.toStringWithCode(PC) + "\n");
+
 				//Empty the stack. We are done executing.
 				STACK.clear();
+
+				promptForUserInput();
 			}
 		}
 	}
 	createNewLine();
-	addProgressToConsole("Program Ended");
+	printTextToConsole("Program Ended");
 	promptForUserInput();
 }
 
@@ -343,10 +319,10 @@ function execute(className) { //+ arguments
  * Lists all of the currently loaded classes.
  */
 function listLoadedClasses() {
-	addProgressToConsole("Currently Loaded Classes: ");
+	printTextToConsole("Currently Loaded Classes: ");
 	for (var className in CLASSES)
 	{
-		addProgressToConsole("\t" + className);
+		printTextToConsole("\t" + className);
 	}
 	promptForUserInput();
 }
@@ -363,3 +339,23 @@ function enableDebug() {
 	DEBUG = true;
 	promptForUserInput();
 }
+
+/**
+ * Prints a method with the given classname, methodname, and descriptor.
+ */
+function printMethod(className, methodName, descriptor) {
+	var klass = Class.getClass(className);
+	var method = klass.getMethodAssert(methodName, descriptor);
+	
+}
+
+
+
+
+
+
+
+
+
+
+

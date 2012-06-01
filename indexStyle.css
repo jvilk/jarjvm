@@ -67,18 +67,6 @@ body{
 	padding:10px;
 }
 
-.error{
-	color:red;
-}
-
-.warning{
-	color:yellow;
-}
-
-.output{
-	color:green;
-}
-
 #console pre{
 	margin:1px;
 }
