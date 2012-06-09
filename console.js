@@ -1,82 +1,224 @@
-USERPROMPT = "CS691ST:user$ ";
-PREVIOUSCOMMANDS = [];
-COMMANDINDEX = 0;
+function Console(consoleId) {
+    this.consoleObj = document.getElementById(consoleId);
+    this.lastDiv = null;
+    this.inputBuffer = "";
+    this.currentInputMode = Console.inputMode.NONE;
+    this.inputLine = null;
+    this.inputMode = Console.inputMode.NONE;
 
-
-/* If you put _ as the first character the help menu will not print it */
-consoleCommands = [];
-consoleCommands["help"] = printHelpMenu;
-consoleCommands["whoami"] = whoAmI;
-consoleCommands["execute"] = execute;
-consoleCommands["_pushelement"] = pushElement;
-consoleCommands["_popelement"] = popElement;
-consoleCommands["listloadedclasses"] = listLoadedClasses;
-consoleCommands["clearstack"] = clearstack;
-consoleCommands["enabledebug"] = enableDebug;
-consoleCommands["printmethod"] = printMethod;
-
-consoleCommandsDescriptions = [];
-consoleCommandsDescriptions["help"] = "Prints the help menu";
-consoleCommandsDescriptions["whoami"] = "Prints the current user - kinda";
-consoleCommandsDescriptions["execute"] = "Used to run a java program. Must be followed by a loaded class name";
-consoleCommandsDescriptions["_pushelement"] = "";
-consoleCommandsDescriptions["_popelement"] = "";
-consoleCommandsDescriptions["listloadedclasses"] = "List all the currently loaded Java classes";
-consoleCommandsDescriptions["clearstack"] = "Clears the debugging stack";
-consoleCommandsDescriptions["enabledebug"] = "Enables debugging output (Greatly affects speed)";
-consoleCommandsDescriptions["printmethod"] = "Prints the bytecode of the specified method. Specify the full classname, method name, and descriptor as arguments.";
-
- 
-function consoleInit(){
-	createMOTD("MOTD: Welcome the the JAR Javascript JVM");
-	promptForUserInput();
-}
-
-function createMOTD(message){
-	printTextToConsole(message + "\n");
-	printTextToConsole("If you need help with this console type 'help' and press Enter");
-	printTextToConsole("-------------------------------------------------------------------------------");
+    //Ensures that lastDiv is set.
+    this.print("");
 }
 
 /**
- * This is the only method that should be actually adding text to the console.
- * All other methods that add text to the console should be a frontend to this
- * method.
+ * Maps colors to CSS classes for console text.
  */
-function printToConsole(text, color) {
-	var console = document.getElementById("console");
-	console.innerHTML += "<div style='white-space:pre-wrap;color:" + color + "'>" + escapeHTML(text) + "</div>";
-	scrollToBottom("console");
-}
+Console.colors = {
+    WHITE : 'whiteConsoleText',
+    RED : 'redConsoleText',
+    YELLOW : 'yellowConsoleText'
+};
+
+/**
+ * Enumerates all of the possible input modes.
+ */
+Console.inputMode = {
+    NONE : 0,
+    BY_LINE : 1,
+    BY_CHAR : 2
+};
+
+/**
+ * Character codes for special characters.
+ * TODO: Fill in characters.
+ */
+Console.specialCharacters = {
+    LEFT : 37, //
+    RIGHT : 39, //
+    HOME : 36, //
+    END : 35, //
+    UP : 38, //
+    DOWN : 40, //
+    BACKSPACE : 8, //
+    ENTER : 13, //
+    TAB : 9 //
+};
+
+Console.prototype.print = function(text, colorClass) {
+    if (colorClass === undefined) colorClass = Console.colors.WHITE;
+
+    //Process the text.
+    text = escapeHTML(text);
+    text = text.replace(/\n/g, "<br />");
+
+    var newDiv = document.createElement('span');
+    newDiv.setAttribute('class', colorClass);
+    newDiv.innerHTML = text;
+
+    //Need to print ABOVE the input line.
+    if (this.inputMode !== Console.inputMode.NONE) {
+        this.consoleObj.removeChild(this.inputLine.getLine());
+        this.consoleObj.appendChild(newDiv);
+        this.consoleObj.appendChild(document.createElement('br'));
+        this.consoleObj.appendChild(this.inputLine.getLine());
+    }
+    else {
+        this.consoleObj.appendChild(newDiv);
+    }
+
+    this.lastDiv = newDiv;
+
+    this.scrollToBottom();
+};
+
+/**
+ * Process a key input event.
+ */
+Console.prototype.keyEvent = function(e, isKeyDown) {
+    e = (window.event) ? event : e;
+    var charCode = (e.keyCode) ? e.keyCode : e.charCode;
+    switch(charCode) {
+        case Console.specialCharacters.LEFT:
+        case Console.specialCharacters.RIGHT:
+        case Console.specialCharacters.HOME:
+        case Console.specialCharacters.END:
+        case Console.specialCharacters.UP:
+        case Console.specialCharacters.DOWN:
+        case Console.specialCharacters.BACKSPACE:
+        case Console.specialCharacters.ENTER:
+        case Console.specialCharacters.TAB:
+            if (isKeyDown) this.inputCharacter(charCode);
+            break;
+        default:
+            if (!isKeyDown) this.inputCharacter(charCode);
+            break;
+    }
+};
+
+Console.prototype.inputCharacter = function(charCode) {
+    if (this.inputMode === Console.inputMode.NONE) return;
+
+    var inputText;
+    var replacementLineNode;
+    var fullLineText;
+    switch(charCode) {
+        case Console.specialCharacters.LEFT :
+            this.inputLine.moveCursor(-1);
+            break;
+        case Console.specialCharacters.RIGHT :
+            this.inputLine.moveCursor(1);
+            break;
+        case Console.specialCharacters.HOME :
+            this.inputLine.moveCursorToEdge(ConsoleInputLine.edge.LEFT);
+            break;
+        case Console.specialCharacters.END :
+            this.inputLine.moveCursorToEdge(ConsoleInputLine.edge.RIGHT);
+            break;
+        case Console.specialCharacters.UP:
+            SHELL.advanceCommandHistory(-1, this.inputLine.getInputText());
+            break;
+        case Console.specialCharacters.DOWN:
+            SHELL.advanceCommandHistory(1, this.inputLine.getInputText());
+            break;
+        case Console.specialCharacters.BACKSPACE:
+            this.inputLine.removeCharacters(1);
+            break;
+        case Console.specialCharacters.ENTER:
+            inputText = this.inputLine.getInputText();
+            fullLineText = this.inputLine.getFullLineText();
+
+            replacementLineNode = document.createElement('span');
+            replacementLineNode.setAttribute('class', Console.colors.WHITE);
+            replacementLineNode.appendChild(document.createTextNode(fullLineText));
+
+            this.consoleObj.removeChild(this.inputLine.getLine());
+            this.consoleObj.appendChild(replacementLineNode);
+
+            //Line break for the enter key.
+            this.consoleObj.appendChild(document.createElement('br'));
+
+            //Get rid of the input line.
+            this.inputLine = null;
+
+            //Reset input mode.
+            this.inputMode = Console.inputMode.NONE;
+
+            //Pass its text content to the shell.
+            SHELL.input(inputText);
+            break;
+        case Console.specialCharacters.TAB:
+            //TODO: Implement.
+            break;
+        default:
+            this.inputLine.addText(String.fromCharCode(charCode));
+    }
+};
+
+/**
+ * Set up the console for input.
+ *   * text: The prompt's test (PS1)
+ *   * useInputCursor: If true, the input cursor is used and updated. If false, it is not displayed.
+ *   * inputMode: Which input mode should the console use?
+ *   * startingText: The default text to put in the input field.
+ */
+Console.prototype.promptForInput = function(text, startingText, useInputCursor, inputMode) {
+    if (startingText === undefined) startingText = "";
+    if (useInputCursor === undefined) useInputCursor = true;
+    if (inputMode === undefined) inputMode = Console.inputMode.BY_LINE;
+
+    this.inputMode = inputMode;
+
+    if (this.inputLine !== null) {
+        this.consoleObj.removeChild(this.inputLine.getLine());
+        //HACK: Remove the br before the previous div.
+        this.consoleObj.removeChild(this.consoleObj.lastChild);
+    }
+    
+    this.inputLine = new ConsoleInputLine(text, useInputCursor, startingText);
+
+    //Add the line to the console on a new line.
+    this.consoleObj.appendChild(document.createElement('br'));
+    this.consoleObj.appendChild(this.inputLine.getLine());
+
+    this.scrollToBottom();
+};
+
+Console.prototype.scrollToBottom = function() {
+    this.consoleObj.scrollTop = this.consoleObj.scrollHeight;
+};
 
 /**
  * Print debug information to the console.
  */
 function debugPrintToConsole(text){
-	if (DEBUG) {
-		printToConsole(text, "white");
-	}
+    if (DEBUG) {
+        CONSOLE.print(text);
+    }
 }
 
 /**
  * Print an error to the console.
  */
 function printErrorToConsole(text){
-	printToConsole(text, "red");
+    CONSOLE.print(text + "\n", Console.colors.RED);
 }
 
 /**
  * Print a warning to the console.
  */
 function printWarningToConsole(text){
-	printToConsole(text, "yellow");
+    CONSOLE.print(text + "\n", Console.colors.YELLOW);
 }
 
 /**
  * Print regular ole text to the console.
  */
 function printTextToConsole(text){
-	printToConsole(text, "white");
+    CONSOLE.print(text + "\n");
+}
+
+function printTextToCurrentLine(text) {
+    CONSOLE.print(text);
 }
 
 /**
@@ -85,311 +227,166 @@ function printTextToConsole(text){
  * It draws the little white box where the user is typing.
  */
 function printUserInputToConsole(text) {
-	printTextToCurrentLine(text);
-	//Draw little white box.
+    printTextToCurrentLine(text);
 }
 
-function createNewLine(){
-	var console = document.getElementById("console");
-	console.innerHTML += "<br />";
-	scrollToBottom("console");
-}
-
-function promptForUserInput(){
-	createNewLine();
-	printTextToConsole(USERPROMPT);
-	scrollToBottom("console");
-	return;
-
-}
-
-
-function printTextToCurrentLine(text){
-	//Get the pre lines
-	var console = document.getElementById("console");
-	var preElements = console.getElementsByTagName("div");
-	
-	//Get the last one
-	var lastPre = preElements[preElements.length - 1];
-	lastPre.innerHTML += escapeHTML(text);
-}
-
-function removeLastCharFromCurrentLine(){
-	//Get the pre lines
-	var console = document.getElementById("console");
-	var preElements = console.getElementsByTagName("div");
-	
-	//Get the last one
-	var lastPre = preElements[preElements.length - 1];
-	if(lastPre.innerHTML.length > USERPROMPT.length){
-		subStr = lastPre.innerHTML.substr(0, lastPre.innerHTML.length - 1);
-		lastPre.innerHTML = subStr;
-	}
-
-	//Draw the little white box.
-
-	return;
-	
-}
-
-function parsePossibleCommand(){
-	var console = document.getElementById("console");
-	var preElements = console.getElementsByTagName("div");
-	var lastPre = preElements[preElements.length - 1];
-	var command = lastPre.innerHTML;
-	
-	PREVIOUSCOMMANDS.push(command.substr(USERPROMPT.length)); //If a command is run push the new one, and reset previous command
-	COMMANDINDEX = PREVIOUSCOMMANDS.length - 1;
-	
-	var splitCommand = command.split(" ");
-	splitCommand.shift(); //There's always a starting space.
-	var commandName = splitCommand.shift();
-	
-	//Run through all the commands
-	for(var consoleCommand in consoleCommands){
-		if(commandName.toLowerCase().indexOf(consoleCommand) != -1){
-			consoleCommands[consoleCommand].apply(null, splitCommand);
-			return;
-		}
-	}
-	printErrorToConsole("Unknown Command");
-	promptForUserInput();
-	return;
-}
-
-function nextPreviousCommand(){
-	if(PREVIOUSCOMMANDS[COMMANDINDEX] !== undefined){
-		eraseCurrentLine();
-		printUserInputToConsole(PREVIOUSCOMMANDS[COMMANDINDEX]);
-		COMMANDINDEX = (COMMANDINDEX > 0) ? COMMANDINDEX -= 1 : 0; //Don't go below 0
-	}
-}
-
-function nextCommand(){
-	COMMANDINDEX += 1;
-	eraseCurrentLine();
-	if(COMMANDINDEX < PREVIOUSCOMMANDS.length){
-		printUserInputToConsole(PREVIOUSCOMMANDS[COMMANDINDEX]);
-	}else{
-		COMMANDINDEX = PREVIOUSCOMMANDS.length - 1;
-	}
-}
-
-function eraseCurrentLine(){
-	//Get the pre lines
-	var console = document.getElementById("console");
-	var preElements = console.getElementsByTagName("div");
-	
-	//Get the last one
-	var lastPre = preElements[preElements.length - 1];
-	lastPre.innerHTML = USERPROMPT;
-	return;
-}
-
-function userTypedSpecialCharacter(e) {
-	scrollToBottom("console");
-	e = (window.event) ? event : e;
-	var keynum = (e.keyCode) ? e.keyCode : e.charCode;
-
-	switch (keynum) {
-		case 8: //Backspace
-			removeLastCharFromCurrentLine();
-			return false;
-		case 13: //Enter
-			parsePossibleCommand();
-			return;
-		case 38: //Up Arrow
-			if (e.preventDefault) {
-				e.preventDefault();
-			}
-			nextPreviousCommand();
-			return;
-		case 40: //Down arrow
-			if (e.preventDefault) {
-				e.preventDefault();
-			}
-			nextCommand();
-			return;
-	}
-}
-
-function userTyped(e){
-	scrollToBottom("console");
-	e = (window.event) ? event : e;
-	var keynum = (e.keyCode) ? e.keyCode : e.charCode;
-	//Ignore special characters. They are handled by onKeyDown.
-	switch (keynum) {
-		case 8: //Backspace
-		case 13: //Enter
-		case 38: //Up Arrow
-		case 40: //Down arrow
-			return;
-	}
-
-
-	var char_ = String.fromCharCode(keynum);
-	printUserInputToConsole(char_);
-}
-
-function scrollToBottom(divName){
-	var objDiv = document.getElementById(divName);
-	objDiv.scrollTop = objDiv.scrollHeight;
-	return;
-}
-
-/***Other console Commands ***/
-
-function printHelpMenu(){
-	printTextToConsole("List of Valid Console Commands:");
-	createNewLine();
-	for(var command in consoleCommands){
-		if(command.charAt(0) != '_'){
-			printTextToConsole(command + " - " + consoleCommandsDescriptions[command]);
-		}
-	}
-	promptForUserInput();
-}
-
-function whoAmI(){
-	printTextToConsole("Probably Emery Berger, but I don't know why you're asking me that");
-	promptForUserInput();
-}
-
+//TODO: This should not be here.
 function pushElement(text){
-	//alert("Push: " + text);
-	if (DEBUG){
-		var stack = document.getElementById("stack");
-		stack.innerHTML += "<div class='stackElement' style='white-space:pre-wrap'>"+escapeHTML(text)+"</div>";
-		scrollToBottom("stackContainer");
-	}
+    if (DEBUG){
+        var stack = document.getElementById("stack");
+        stack.innerHTML += "<div class='stackElement' style='white-space:pre-wrap'>"+escapeHTML(text)+"</div>";
+        scrollToBottom("stackContainer");
+    }
 }
 
+//TODO: This should not be here.
 function popElement(){
-	//alert("Pop");
-	if(DEBUG){
-		var stack = document.getElementById("stack");
-		var frames = stack.getElementsByTagName("div");
-		if(frames.length > 0){
-			scrollToBottom("stackContainer");
-			var lastFrame = frames[frames.length -1];
-			stack.removeChild(lastFrame);
-		}else{
-			printErrorToConsole("No Frames To Pop");
-		}
-	}
+    //alert("Pop");
+    if(DEBUG){
+        var stack = document.getElementById("stack");
+        var frames = stack.getElementsByTagName("div");
+        if(frames.length > 0){
+            scrollToBottom("stackContainer");
+            var lastFrame = frames[frames.length -1];
+            stack.removeChild(lastFrame);
+        }else{
+            printErrorToConsole("No Frames To Pop");
+        }
+    }
+}
+
+function scrollToBottom() {
+    document.getElementById("stackContainer").scrollTop = document.getElementById("stackContainer").scrollHeight;
 }
 
 /**
- * Executes the main function of a given class.
+ * Input line:
+ * getText()
+ * gotta pass it to print or something???
  */
-function execute(className) { //+ arguments
-	//debugPrintToConsole("Is stack empty? " + STACK.empty());
-	
-	//Ensure the class exists.
-	if (!(className in CLASSES))
-	{
-		printErrorToConsole("ERROR: " + className + " is not currently loaded.");
-		return;
-	}
-	
-	var classInfo = CLASSES[className];
-	var mainMethod = classInfo.getMethodAssert("main", "([Ljava/lang/String;)V");
-	
-	var stringClass = Class.getClass("java/lang/String");
-	var args = new JavaArray(Data.type.OBJECT, stringClass, 1, arguments.length-1);
-	
-	for (var i = 1; i < arguments.length; i++)
-	{
-		//Create a String object.
-		printTextToConsole("Creating string w/ text " + arguments[i]);
-		var stringObj = getJavaString(arguments[i]);
-		
-		args.set(i, stringObj);
-	}
-	
-	MethodRun.createCall(mainMethod, args);
-	
-	while (!STACK.empty())
-	{
-		var method = STACK.currentFrame.pop();
-		try
-		{
-			method.execute();
-		}
-		catch (err)
-		{
-			//If it has classInfo, it's a Java exception.
-			if (typeof err !== "string" && typeof err !== "object")
-			{
-				//If the stack is empty, there are no more functions to catch it.
-				if (STACK.empty())
-				{
-					//TODO: Handle unhandled exceptions here. toString? Call stack?
-					printErrorToConsole("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".");
-				}
-				
-				//If the stack is not empty, ignore the exception; it may still be caught.
-			}
-			//Otherwise, it's a JavaScript exception! Print it.
-			else
-			{
-				printErrorToConsole("JVM Exception: " + err);
+function ConsoleInputLine(prompt, displayCursor, initialText) {
+    this.prompt = document.createElement('span');
+    this.prompt.appendChild(document.createTextNode(prompt + " "));
 
-				printTextToConsole(STACK.currentFrame.methodInfo.toStringWithCode(PC) + "\n");
+    this.leftInputText = document.createElement('span');
+    this.leftInputText.appendChild(document.createTextNode(initialText));
 
-				//Empty the stack. We are done executing.
-				STACK.clear();
+    //Create the console's cursor. We move this div about during execution.
+    this.cursor = document.createElement('span');
+    if (displayCursor) {
+        this.cursor.setAttribute('class', 'consoleCursor');
+    }
+    this.cursor.appendChild(document.createTextNode("\u00a0"));
 
-				promptForUserInput();
-			}
-		}
-	}
-	createNewLine();
-	printTextToConsole("Program Ended");
-	promptForUserInput();
+    this.rightInputText = document.createElement('span');
+    this.rightInputText.appendChild(document.createTextNode(""));
+
+    //The line holds them all together.
+    this.line = document.createElement('span');
+    this.line.setAttribute('class', Console.colors.WHITE);
+    this.line.appendChild(this.prompt);
+    this.line.appendChild(this.leftInputText);
+    this.line.appendChild(this.cursor);
+    this.line.appendChild(this.rightInputText);
 }
+
+ConsoleInputLine.edge = {
+    LEFT : 0,
+    RIGHT : 1
+};
 
 /**
- * Lists all of the currently loaded classes.
+ * Moves the text cursor over 'offset' characters, if legal to do so.
+ * If it is illegal, it will move the cursor as far as it can go.
+ * TODO: Do not use any special logic with '\u00a0'. Make this smarter.
  */
-function listLoadedClasses() {
-	printTextToConsole("Currently Loaded Classes: ");
-	for (var className in CLASSES)
-	{
-		printTextToConsole("\t" + className);
-	}
-	promptForUserInput();
-}
+ConsoleInputLine.prototype.moveCursor = function(offset) {
+    var rightTextNode = this.rightInputText.firstChild;
+    var leftTextNode = this.leftInputText.firstChild;
+    var cursorTextNode = this.cursor.firstChild;
+
+    var rightTextLength = rightTextNode.textContent.length;
+    var leftTextLength = leftTextNode.textContent.length;
+
+    if (offset > 0) {
+        if (cursorTextNode.textContent === "\u00a0") return;
+
+        if (rightTextLength < offset-1) offset = rightTextLength + 1;
+
+        leftTextNode.textContent += cursorTextNode.textContent + rightTextNode.textContent.substr(0, offset-1);
+        cursorTextNode.textContent = rightTextLength > offset-1 ? rightTextNode.textContent.substr(offset-1, 1) : "\u00a0";
+        rightTextNode.textContent = rightTextLength > offset ? rightTextNode.textContent.substr(offset, rightTextLength - offset) : "";
+    }
+    else if (offset < 0) {
+        if (leftTextLength === 0) return;
+        offset = Math.abs(offset);
+
+        if (leftTextLength < offset) offset = leftTextLength;
+
+        rightTextNode.textContent = leftTextNode.textContent.substr(leftTextLength-offset+1, offset-1) + (this.cursor.firstChild.textContent !== "\u00a0" ? this.cursor.firstChild.textContent : "") + rightTextNode.textContent;
+        cursorTextNode.textContent = leftTextNode.textContent.substr(leftTextLength-offset, 1);
+        leftTextNode.textContent = leftTextNode.textContent.substr(0, leftTextLength-offset);
+    }
+};
 
 /**
- * Clears the stack. Useful for when things go bad.
+ * Moves the input cursor to the given edge of the input line.
  */
-function clearstack() {
-	STACK = new Stack();
-	promptForUserInput();
-}
-
-function enableDebug() {
-	DEBUG = true;
-	promptForUserInput();
-}
+ConsoleInputLine.prototype.moveCursorToEdge = function(edge) {
+    if (edge === ConsoleInputLine.edge.LEFT) {
+        this.moveCursor(-1*this.leftInputText.firstChild.textContent.length);
+    }
+    else {
+        this.moveCursor(this.rightInputText.firstChild.textContent.length + 1);
+    }
+};
 
 /**
- * Prints a method with the given classname, methodname, and descriptor.
+ * Returns the current input text on the line.
  */
-function printMethod(className, methodName, descriptor) {
-	var klass = Class.getClass(className);
-	var method = klass.getMethodAssert(methodName, descriptor);
-	
-}
+ConsoleInputLine.prototype.getInputText = function() {
+    return this.leftInputText.firstChild.textContent + (this.cursor.firstChild.textContent !== "\u00a0" ? this.cursor.firstChild.textContent : "") + this.rightInputText.firstChild.textContent;
+};
 
+/**
+ * Returns the entire text, prompt and all.
+ */
+ConsoleInputLine.prototype.getFullLineText = function() {
+    return this.prompt.firstChild.textContent + this.getInputText();
+};
 
+/**
+ * Add input text to the line.
+ */
+ConsoleInputLine.prototype.addText = function(text) {
+    this.leftInputText.firstChild.textContent += text;
+};
 
+/**
+ * Completely change the text on the input line.
+ */
+ConsoleInputLine.prototype.changeText = function(text) {
+    this.leftInputBox.firstChild.textContent = text;
+    this.cursor.firstChild.textContent = "\u00a0";
+    this.rightInputText.firstChild.textContent = "";
+};
 
+/**
+ * Remove numChars characters from the input line if legal to do so.
+ * If not legal, then it will remove all of the characters.
+ */
+ConsoleInputLine.prototype.removeCharacters = function(numChars) {
+    var leftTextNode = this.leftInputText.firstChild;
+    var leftTextLength = leftTextNode.textContent.length;
 
+    if (leftTextLength < numChars) numChars = leftTextLength;
 
+    leftTextNode.textContent = leftTextNode.textContent.substr(0, leftTextLength - numChars);
+};
 
-
-
-
-
+/**
+ * Get the entire line for placement on the page.
+ */
+ConsoleInputLine.prototype.getLine = function() {
+    return this.line;
+};

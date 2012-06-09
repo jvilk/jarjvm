@@ -54,6 +54,7 @@ body {
 }
 .console{
 	font-family:monospace;
+	font-size:14px;
 	height:475px;
 	width:675px;
 	border:3px #333 groove;
@@ -88,4 +89,17 @@ body {
 	padding:5px;
 	background-color:#DDD;
 	margin-bottom:3px;
+}
+.consoleCursor{
+	background-color:white;
+	color:black;
+}
+.redConsoleText{
+	color:red;
+}
+.whiteConsoleText{
+	color:white;
+}
+.yellowConsoleText{
+	color:yellow;
 }

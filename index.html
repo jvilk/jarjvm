@@ -4,11 +4,12 @@
 		<script type="text/javascript" src="Util.js"></script>
 		<script type="text/javascript" src="Stack.js"></script>
 		<script type="text/javascript" src="console.js"></script>
+		<script type="text/javascript" src="Shell.js"></script>
 		<LINK href="indexStyle.css" rel="stylesheet" type="text/css" />
 		
 		<title>JAR JVM</title>
 	</head>
-	<body onload="consoleInit()">
+	<body>
 		<div class="main">
 			<div class="headerDiv">
 				JAR JVM 
@@ -24,7 +25,7 @@
 			</div>
 			<div id="program" class="program">
 				<div id="consoleContainer" class="consoleContainer">
-					<div id="console" class="console" tabindex="1" onkeydown="userTypedSpecialCharacter(event)" onkeypress="userTyped(event)">
+					<div id="console" class="console" tabindex="1" onkeypress="CONSOLE.keyEvent(event, false)" onkeydown="CONSOLE.keyEvent(event, true)">
 
 					</div>
 				</div>
@@ -57,6 +58,20 @@
 			include("Descriptor.js");
 			include("Long.js");
 			include("JavaClassReader.js");
+
+			//TODO: Refactor into closure.
+			CONSOLE = new Console("console");
+			/*** Register all of the shell commands ***/
+			//TODO: Refactor into a closure.
+			SHELL = new Shell(CONSOLE, "Welcome the the JAR Javascript JVM!\nIf you need help with this console type 'help' and press Enter\n--------------------------------------------------------------------------------\n");
+			SHELL.registerCommand(SHELL); //'help' command.
+			SHELL.registerCommand(new ShellCommand("test", "Debug", "A test command that prints back the arguments fed to it.", commandTest));
+			SHELL.registerCommand(new ShellCommand("execute", "Java", "Execute the specified Java program.", execute));
+			SHELL.registerCommand(new ShellCommand("listloadedclasses", "Java", "List all of the currently loaded Java classes.", listLoadedClasses));
+			SHELL.registerCommand(new ShellCommand("clearstack", "Debug", "Clear the Java stack.", clearstack));
+			SHELL.registerCommand(new ShellCommand("toggledebug", "Debug", "Toggle debugging output (greatly slows down execution speed).", toggleDebug));
+			SHELL.registerCommand(new ShellCommand("printmethod", "Debug", "Print the bytecode of the specified method. Specify the full classname, method name, and descriptor as arguments.", printMethod));
+
 		
 			/**
 			 * Prevent Chrome from going back a page when backspace is hit.
@@ -65,7 +80,9 @@
 			    evt = evt || window.event;
 			    var target = evt.target || evt.srcElement;
 
-			    if (evt.keyCode == 8 && !/input|textarea/i.test(target.nodeName)) {
+			    if ((evt.keyCode === 8 || evt.keyCode === Console.specialCharacters.UP || evt.keyCode === Console.specialCharacters.DOWN ||
+			    	evt.keyCode === Console.specialCharacters.END || evt.keyCode === Console.specialCharacters.HOME) && 
+			    	!/input|textarea/i.test(target.nodeName)) {
 			        return false;
 			    }
 			}
@@ -74,7 +91,8 @@
 			document.onkeypress = suppressBackspace;
 
 			DEBUG = false; //USED to turn off console text except for WARNING, ERROR, and OUTPUT
-		
+			LAST_INSERT_CURSOR = false;
+			INNERHTML_BEFORE_CURSOR = "";
 			STACK = new Stack();
 			CLASSES = new Array();
 			// Program Counter
@@ -97,7 +115,7 @@
 
 			function handleFileSelect(evt) {
 				//Initialize system.
-				printTextToConsole("Loading User Classes");
+				printTextToConsole("Loading User Classes...\n");
 				
 				if (!SYSTEMINITIALIZED)
 				{
@@ -105,7 +123,7 @@
 					MethodRun.callFromNative("java/lang/System", "initializeSystemClass", "()V");
 					SYSTEMINITIALIZED = true;	
 				}
-				debugPrintToConsole("System Initialized");
+				debugPrintToConsole("System Initialized\n");
 				var files = evt.target.files;
 				// FileList object
 
@@ -120,7 +138,6 @@
 							var javaClassReader = new JavaClassReader(bytes);
 							var aClass = new Class(javaClassReader);
 							assert(javaClassReader.index == javaClassReader.data.length);
-							promptForUserInput();
 						}
 					};
 

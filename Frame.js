@@ -29,7 +29,8 @@ Frame.prototype.push = function(x){
         
     
     this.stack.push(x);
-    if (x !== undefined && (x.dataType == Data.type.DOUBLE || x.dataType == Data.type.LONG))
+    //JavaScript null = Java null. We don't want to check properties on a null value.
+    if (x !== null && x !== undefined && (x.dataType == Data.type.DOUBLE || x.dataType == Data.type.LONG))
     {
         this.stack.push(x);
     }
@@ -55,7 +56,8 @@ Frame.prototype.empty = function() {
 
 Frame.prototype.setLocal = function(index, value) {
     this.locals[index] = value;
-    if (value !== undefined && (value.dataType == Data.type.DOUBLE || value.dataType == Data.type.LONG)) {
+    //JavaScript null = Java null. We don't want to check properties on a null value.
+    if (value !== null && value !== undefined && (value.dataType == Data.type.DOUBLE || value.dataType == Data.type.LONG)) {
         this.locals[index+1] = value;
     }
 };
