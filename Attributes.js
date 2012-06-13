@@ -405,7 +405,7 @@ function CodeAttribute(javaClassReader, attributeNameIndex) {
         
         while (!JVM.getExecutingThread().isContextSwitch()) {
             currentInst = this.code[JVM.getExecutingThread().getPC()];
-            JVM.debugPrint("Bytecode Opcode: " + opcodeToString(currentInst.opcode));
+            JVM.debugPrint("Bytecode Opcode: " + ByteCode.strings[currentInst.opcode]);
             JVM.getExecutingThread().incrementPC(currentInst.length);
             currentInst.execute();
         }

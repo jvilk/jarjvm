@@ -1,15 +1,3 @@
-/**
- * Easily include other JavaScript files.
- */
-function include(filename) {
-    var head = document.getElementsByTagName('head')[0];
-    script = document.createElement('script');
-    script.src = filename;
-    script.type = 'text/javascript';
-
-    head.appendChild(script);
-}
-
 /* child must be a reference to this, and parentConstructor is the string that is the name of the contructor */
 function inherits(child, parentConstructor){
     //Initialize Parent
@@ -77,12 +65,4 @@ function getJavaString(string) {
     }
     
     return MethodRun.constructObject("java/lang/String", "([C)V", charArray);
-}
-
-function opcodeToString(opcode) {
-    for (var opcodeStr in ByteCode.codes) {
-        if (ByteCode.codes[opcodeStr] == opcode) {
-            return opcodeStr;
-        }
-    }
 }
