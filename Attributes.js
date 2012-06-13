@@ -35,7 +35,7 @@ function makeAttributes(javaClassReader, attributesCount) {
                 attributes[i] = new DeprecatedAttribute(javaClassReader, attributeNameIndex);
                 break;
             default:
-                //printErrorToConsole("WARNING: Unrecognized attribute " + attributeName + ".");
+                //JVM.printError("WARNING: Unrecognized attribute " + attributeName + ".");
                 attributes[i] = new GenericAttribute(javaClassReader, attributeNameIndex);
                 break;
         }
@@ -401,12 +401,12 @@ function CodeAttribute(javaClassReader, attributeNameIndex) {
         var currentInst;
         
         //Since we're resuming the method, the context switch is over.
-        CONTEXTSWITCH = false;
+        JVM.getExecutingThread().setContextSwitch(false);
         
-        while (!CONTEXTSWITCH) {
-            currentInst = this.code[PC];
-            debugPrintToConsole("Bytecode Opcode: " + opcodeToString(currentInst.opcode));
-            PC += currentInst.length;
+        while (!JVM.getExecutingThread().isContextSwitch()) {
+            currentInst = this.code[JVM.getExecutingThread().getPC()];
+            JVM.debugPrint("Bytecode Opcode: " + opcodeToString(currentInst.opcode));
+            JVM.getExecutingThread().incrementPC(currentInst.length);
             currentInst.execute();
         }
     };
@@ -423,7 +423,8 @@ function CodeAttribute(javaClassReader, attributeNameIndex) {
             var exceptionEntry = this.exceptionTable[anException];
             //Check if exception is in range
             //Range is [startPC, endPC)
-            if (PC >= exceptionEntry.startPC && PC < exceptionEntry.endPC)
+            var pc = JVM.getExecutingThread().getPC();
+            if (pc >= exceptionEntry.startPC && pc < exceptionEntry.endPC)
             {
                 var className = exceptionEntry.catchType;
                 //className is undefined if it's a finally block [which means it matches everything]
@@ -439,7 +440,7 @@ function CodeAttribute(javaClassReader, attributeNameIndex) {
         }
         
         //Pop off our frame. There's nothing that can be done.
-        STACK.pop();
+        JVM.getExecutingThread().popFrame();
         
         //Rethrow the exception.
         MethodRun.throwException(exception);

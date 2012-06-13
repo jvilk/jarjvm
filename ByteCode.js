@@ -613,8 +613,8 @@ ByteCode.rem = function() {
 };
 
 ByteCode.branch = function(codeSize, offset) {
-	PC -= codeSize;
-	PC += offset;
+	JVM.getExecutingThread().incrementPC(-1*codeSize);
+	JVM.getExecutingThread().incrementPC(offset);
 };
 /**Takes the return value and hands it to createReturn**/
 ByteCode.return_ = function() {
@@ -660,7 +660,7 @@ ByteCode[ByteCode.codes.anewarray] = function(className) {
 		ByteCode.throwException("NegativeArraySizeException");
 		return;
 	}
-	var class_ = Class.getClass(className);
+	var class_ = JVM.getClass(className);
 	ByteCode.push(new JavaArray(Data.type.OBJECT, class_, 1, arrayLength));
 };
 ByteCode[ByteCode.codes.areturn] = function() {
@@ -994,7 +994,7 @@ ByteCode[ByteCode.codes.getfield] = function(fieldRef) {
 	var object = ByteCode.pop();
 	var field = fieldRef.getRef();
 	assert(field !== undefined);
-	//debugPrintToConsole(object.getFieldByFieldInfo(field));
+	//JVM.debugPrint(object.getFieldByFieldInfo(field));
 	//var value = object.getFieldByFieldInfo(field);
 	//alert(value);
 	ByteCode.push(object.getFieldByFieldInfo(field));
@@ -1242,24 +1242,24 @@ ByteCode[ByteCode.codes.instanceof_] = function(className) {
 		ByteCode.push(new Integer(0));
 };
 ByteCode[ByteCode.codes.invokeinterface] = function(methodRef, count) {//Count used for historical reasons
-	debugPrintToConsole(methodRef.toString());
+	JVM.debugPrint(methodRef.toString());
 	var nameAndDescriptor = methodRef.nameAndType;
 	//Parse the descriptor to get a MethodDescriptor
 	var method = parseMethodDescriptor(nameAndDescriptor.descriptor);
 	var numOfArgs = method.args.length;
 	
-	debugPrintToConsole(method.toString());
+	JVM.debugPrint(method.toString());
 	//save the arguments for stack popping
 	//Pop the needed arguments off the stack
 	var args = [];
 	for(var i = 0; i < numOfArgs; i++) {
 		args.push(ByteCode.pop());
-		debugPrintToConsole("ARG at " + i + ": " + args[i]);
+		JVM.debugPrint("ARG at " + i + ": " + args[i]);
 	}
 
 	//Pop the object reference off the stack
 	var objectRef = ByteCode.pop();
-	//debugPrintToConsole(objectRef);
+	//JVM.debugPrint(objectRef);
 	if(objectRef === null) {
 		alert("YUP, NPE");
 		ByteCode.throwException("NullPointerException");
@@ -1371,7 +1371,7 @@ ByteCode[ByteCode.codes.jsr] = function(offset) {
 	MethodRun.createResume();
 
 	//Execute from = Current - sizeofJSR(3) + offset
-	PC = PC - 3 + offset;
+	JVM.getExecutingThread().incrementPC(offset-3);
 	return;
 
 };
@@ -1380,7 +1380,7 @@ ByteCode[ByteCode.codes.jsr_w] = function(offset) {
 	MethodRun.createResume();
 
 	//Execute from = Current - sizeofJSR(5) + offset
-	PC = PC - 5 + offset;
+	JVM.getExecutingThread().incrementPC(offset-5);
 };
 ByteCode[ByteCode.codes.l2d] = function() {
 	var long_ = ByteCode.pop();
@@ -1500,7 +1500,7 @@ ByteCode[ByteCode.codes.lookupswitch] = function(length, default_, npairs, match
 	}
 
 	//Offset now has the value for the next bytecode
-	PC = PC - length + offset;
+	JVM.getExecutingThread().incrementPC(offset-length);
 
 	return;
 }
@@ -1553,7 +1553,7 @@ ByteCode[ByteCode.codes.multianewarray] = function(index, numberOfDimensions) {
 	//TODO: FInish this
 };
 ByteCode[ByteCode.codes.new_] = function(className) {
-	var classInfo = Class.getClass(className);
+	var classInfo = JVM.getClass(className);
 	var object = classInfo.getInstantiation();
 	ByteCode.push(classInfo.getInstantiation());
 };
@@ -1602,7 +1602,7 @@ ByteCode[ByteCode.codes.ret] = function(index) {
 	var newPC = ByteCode.getLocal(index);
 
 	//'Jump' :)
-	PC = newPC.value;
+	JVM.getExecutingThread().setPC(newPC.value);
 
 	//Do jump
 };
@@ -1635,7 +1635,7 @@ ByteCode[ByteCode.codes.tableswitch] = function(length, default_, low, high, off
 	}
 
 	//Offset now has the value for the next bytecode
-	PC = PC - length + offset;
+	JVM.getExecutingThread().incrementPC(offset-length);
 
 };
 ByteCode[ByteCode.codes.wide] = function(opcode, index, constant) {

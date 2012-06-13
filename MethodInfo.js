@@ -26,7 +26,7 @@ function MethodInfo(javaClassReader, classInfo) {
     {
         this.execute = getNativeFunction(this.classInfo.thisClassName, this.name, this.descriptor);
         this.exception = function() {
-            printErrorToConsole("JVM ERROR: The JVM tried to look for an exception handler in a native function.");
+            JVM.printError("JVM ERROR: The JVM tried to look for an exception handler in a native function.");
         };
     }
 }
@@ -144,17 +144,17 @@ MethodInfo.prototype.execute = function() {
     //Begin static initialization of this method's class, unless this
     //is the static initializer.
     if (!this.isClinit()) {
-        //debugPrintToConsole("Initializing my class...");
+        //JVM.debugPrint("Initializing my class...");
         this.classInfo.initialize();
     }
     
-    //debugPrintToConsole("Initialized!");
+    //JVM.debugPrint("Initialized!");
     
     //PC of 0 means that execution is starting, not resuming.
     //Print a warning if calling a deprecated method.
-    if (PC === 0 && this.isDeprecated() && !this.deprecationWarned)
+    if (JVM.getExecutingThread().getPC() === 0 && this.isDeprecated() && !this.deprecationWarned)
     {
-        printErrorToConsole("WARNING: Using deprecated method \"" + this.name + "\".");
+        JVM.printError("WARNING: Using deprecated method \"" + this.name + "\".");
         //We only want to warn once per method.
         this.deprecationWarned = true;
     }
@@ -163,7 +163,7 @@ MethodInfo.prototype.execute = function() {
     assert(codeAttribute !== undefined);
     
     codeAttribute.execute();
-    //debugPrintToConsole("FINISHED execution!");
+    //JVM.debugPrint("FINISHED execution!");
 };
 
 /**
@@ -186,13 +186,13 @@ MethodInfo.prototype.exception = function() {
     else
     {
         //Pop this method's frame. It can't handle this exception!
-        STACK.pop();
+        JVM.getExecutingThread().popFrame();
     
         //Fix MethodRun object of next method so it knows to handle
         //an exception.
-        var methodRun = STACK.currentFrame.pop();
+        var methodRun = JVM.getExecutingThread().pop();
         methodRun.type = MethodRun.type.EXCEPTION;
-        STACK.currentFrame.push(methodRun);
+        JVM.getExecutingThread().push(methodRun);
     }
 };
 

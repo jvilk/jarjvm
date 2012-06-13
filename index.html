@@ -2,9 +2,29 @@
 <html lang="en">
 	<head>
 		<script type="text/javascript" src="Util.js"></script>
+		<script type="text/javascript" src="Thread.js"></script>
 		<script type="text/javascript" src="Stack.js"></script>
 		<script type="text/javascript" src="console.js"></script>
 		<script type="text/javascript" src="Shell.js"></script>
+		<script type="text/javascript" src="Primitive.js"></script>
+		<script type="text/javascript" src="JavaObject.js"></script>
+		<script type="text/javascript" src="JavaScriptStackTrace.js"></script>
+		<script type="text/javascript" src="Attributes.js"></script>
+		<script type="text/javascript" src="ByteCode.js"></script>
+		<script type="text/javascript" src="Class.js"></script>
+		<script type="text/javascript" src="ConstantPoolInfo.js"></script>
+		<script type="text/javascript" src="Deflate.js"></script>
+		<script type="text/javascript" src="FieldInfo.js"></script>
+		<script type="text/javascript" src="Frame.js"></script>
+		<script type="text/javascript" src="NativeFunctions.js"></script>
+		<script type="text/javascript" src="MethodInfo.js"></script>
+		<script type="text/javascript" src="MethodRun.js"></script>
+		<script type="text/javascript" src="Instruction.js"></script>
+		<script type="text/javascript" src="Descriptor.js"></script>
+		<script type="text/javascript" src="Long.js"></script>
+		<script type="text/javascript" src="JavaClassReader.js"></script>
+		<script type="text/javascript" src="ClassLoader.js"></script>
+		<script type="text/javascript" src="VM.js"></script>
 		<LINK href="indexStyle.css" rel="stylesheet" type="text/css" />
 		
 		<title>JAR JVM</title>
@@ -25,7 +45,7 @@
 			</div>
 			<div id="program" class="program">
 				<div id="consoleContainer" class="consoleContainer">
-					<div id="console" class="console" tabindex="1" onkeypress="CONSOLE.keyEvent(event, false)" onkeydown="CONSOLE.keyEvent(event, true)">
+					<div id="console" class="console" tabindex="1" onkeypress="JVM.getConsole().keyEvent(event, false)" onkeydown="JVM.getConsole().keyEvent(event, true)">
 
 					</div>
 				</div>
@@ -41,37 +61,6 @@
 		<script type="text/javascript">
 			/** Include all of our scripts **/
 			//NOTE: Stack is included above because we use it for a global.
-			include("Primitive.js");
-			include("JavaObject.js");
-			include("JavaScriptStackTrace.js");
-			include("Attributes.js");
-			include("ByteCode.js");
-			include("Class.js");
-			include("ConstantPoolInfo.js");
-			include("Deflate.js");
-			include("FieldInfo.js");
-			include("Frame.js");
-			include("NativeFunctions.js");
-			include("MethodInfo.js");
-			include("MethodRun.js");
-			include("Instruction.js");
-			include("Descriptor.js");
-			include("Long.js");
-			include("JavaClassReader.js");
-
-			//TODO: Refactor into closure.
-			CONSOLE = new Console("console");
-			/*** Register all of the shell commands ***/
-			//TODO: Refactor into a closure.
-			SHELL = new Shell(CONSOLE, "Welcome the the JAR Javascript JVM!\nIf you need help with this console type 'help' and press Enter\n--------------------------------------------------------------------------------\n");
-			SHELL.registerCommand(SHELL); //'help' command.
-			SHELL.registerCommand(new ShellCommand("test", "Debug", "A test command that prints back the arguments fed to it.", commandTest));
-			SHELL.registerCommand(new ShellCommand("execute", "Java", "Execute the specified Java program.", execute));
-			SHELL.registerCommand(new ShellCommand("listloadedclasses", "Java", "List all of the currently loaded Java classes.", listLoadedClasses));
-			SHELL.registerCommand(new ShellCommand("clearstack", "Debug", "Clear the Java stack.", clearstack));
-			SHELL.registerCommand(new ShellCommand("toggledebug", "Debug", "Toggle debugging output (greatly slows down execution speed).", toggleDebug));
-			SHELL.registerCommand(new ShellCommand("printmethod", "Debug", "Print the bytecode of the specified method. Specify the full classname, method name, and descriptor as arguments.", printMethod));
-
 		
 			/**
 			 * Prevent Chrome from going back a page when backspace is hit.
@@ -87,43 +76,22 @@
 			    }
 			}
 
+			//Suppresses Chrome's backspace behavior (goes back a page).
 			document.onkeydown = suppressBackspace;
 			document.onkeypress = suppressBackspace;
 
-			DEBUG = false; //USED to turn off console text except for WARNING, ERROR, and OUTPUT
-			LAST_INSERT_CURSOR = false;
-			INNERHTML_BEFORE_CURSOR = "";
-			STACK = new Stack();
-			CLASSES = new Array();
-			// Program Counter
-			PC = 0;
+			JVM = new VM("console", "Welcome the the JAR Javascript JVM!\nIf you need help with this console type 'help' and press Enter\n--------------------------------------------------------------------------------\n");
+			JVM.initialize();
+
+			// !!!HACK!!!
 			// Current Constant Pool
+			// ONLY USED DURING CONSTANT POOL INITIALIZATION due to laziness
+			// Should refactor out.
 			CONSTANTPOOL = undefined;
-			// Set to 'true' when a context switch is about to occur.
-			// Reset just before a method call.
-			CONTEXTSWITCH = false;
-
-			Exception = {
-				EXCEPTION : 1,
-				METHOD_CALL : 2,
-				RETURNING : 3,
-				CATCH_FOUND : 4
-			};
-
-			//HACK
-			SYSTEMINITIALIZED = false;
 
 			function handleFileSelect(evt) {
 				//Initialize system.
-				printTextToConsole("Loading User Classes...\n");
-				
-				if (!SYSTEMINITIALIZED)
-				{
-					var systemClass = Class.getClass("java/lang/System");
-					MethodRun.callFromNative("java/lang/System", "initializeSystemClass", "()V");
-					SYSTEMINITIALIZED = true;	
-				}
-				debugPrintToConsole("System Initialized\n");
+				JVM.println("Loading User Classes...\n");
 				var files = evt.target.files;
 				// FileList object
 
@@ -133,7 +101,7 @@
 
 					reader.onloadend = function(evt) {
 						if(evt.target.readyState == FileReader.DONE) {
-							printTextToConsole("File Read In");
+							JVM.println("File Read In");
 							var bytes = evt.target.result;
 							var javaClassReader = new JavaClassReader(bytes);
 							var aClass = new Class(javaClassReader);

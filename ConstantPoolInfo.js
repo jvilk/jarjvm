@@ -70,7 +70,7 @@ function ConstantPool(javaClassReader) {
                 this[i] = new ConstantUTF8Info(length, string);
                 break;
             default:
-                printErrorToConsole("ERROR: Unable to determine the 'tag' element of a cp_info struct: " + tag + ".");
+                JVM.printError("ERROR: Unable to determine the 'tag' element of a cp_info struct: " + tag + ".");
                 break;
         }
     }
@@ -224,8 +224,8 @@ function ConstantRefInfo(refType, classIndex, nameAndTypeIndex) {
         if (this._class !== undefined)
             return this._class;
             
-        //debugPrintToConsole("CPRef ClassIndex: " + this.classIndex);
-        this._class = Class.getClass(this.className);
+        //JVM.debugPrint("CPRef ClassIndex: " + this.classIndex);
+        this._class = JVM.getClass(this.className);
         
         return this._class;
     };

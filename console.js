@@ -1,10 +1,11 @@
-function Console(consoleId) {
+function Console(consoleId, motd) {
     this.consoleObj = document.getElementById(consoleId);
     this.lastDiv = null;
     this.inputBuffer = "";
     this.currentInputMode = Console.inputMode.NONE;
     this.inputLine = null;
     this.inputMode = Console.inputMode.NONE;
+    this.shell = new Shell(this, motd);
 
     //Ensures that lastDiv is set.
     this.print("");
@@ -115,10 +116,10 @@ Console.prototype.inputCharacter = function(charCode) {
             this.inputLine.moveCursorToEdge(ConsoleInputLine.edge.RIGHT);
             break;
         case Console.specialCharacters.UP:
-            SHELL.advanceCommandHistory(-1, this.inputLine.getInputText());
+            this.shell.advanceCommandHistory(-1, this.inputLine.getInputText());
             break;
         case Console.specialCharacters.DOWN:
-            SHELL.advanceCommandHistory(1, this.inputLine.getInputText());
+            this.shell.advanceCommandHistory(1, this.inputLine.getInputText());
             break;
         case Console.specialCharacters.BACKSPACE:
             this.inputLine.removeCharacters(1);
@@ -144,7 +145,7 @@ Console.prototype.inputCharacter = function(charCode) {
             this.inputMode = Console.inputMode.NONE;
 
             //Pass its text content to the shell.
-            SHELL.input(inputText);
+            this.shell.input(inputText);
             break;
         case Console.specialCharacters.TAB:
             //TODO: Implement.
@@ -187,52 +188,9 @@ Console.prototype.scrollToBottom = function() {
     this.consoleObj.scrollTop = this.consoleObj.scrollHeight;
 };
 
-/**
- * Print debug information to the console.
- */
-function debugPrintToConsole(text){
-    if (DEBUG) {
-        CONSOLE.print(text);
-    }
-}
-
-/**
- * Print an error to the console.
- */
-function printErrorToConsole(text){
-    CONSOLE.print(text + "\n", Console.colors.RED);
-}
-
-/**
- * Print a warning to the console.
- */
-function printWarningToConsole(text){
-    CONSOLE.print(text + "\n", Console.colors.YELLOW);
-}
-
-/**
- * Print regular ole text to the console.
- */
-function printTextToConsole(text){
-    CONSOLE.print(text + "\n");
-}
-
-function printTextToCurrentLine(text) {
-    CONSOLE.print(text);
-}
-
-/**
- * Print user input to console.
- * ALWAYS use this for user input or for placing text on the user input line!
- * It draws the little white box where the user is typing.
- */
-function printUserInputToConsole(text) {
-    printTextToCurrentLine(text);
-}
-
 //TODO: This should not be here.
 function pushElement(text){
-    if (DEBUG){
+    if (JVM.isDebug()){
         var stack = document.getElementById("stack");
         stack.innerHTML += "<div class='stackElement' style='white-space:pre-wrap'>"+escapeHTML(text)+"</div>";
         scrollToBottom("stackContainer");
@@ -242,7 +200,7 @@ function pushElement(text){
 //TODO: This should not be here.
 function popElement(){
     //alert("Pop");
-    if(DEBUG){
+    if(JVM.isDebug()){
         var stack = document.getElementById("stack");
         var frames = stack.getElementsByTagName("div");
         if(frames.length > 0){
@@ -250,7 +208,7 @@ function popElement(){
             var lastFrame = frames[frames.length -1];
             stack.removeChild(lastFrame);
         }else{
-            printErrorToConsole("No Frames To Pop");
+            JVM.printError("No Frames To Pop");
         }
     }
 }

@@ -131,7 +131,7 @@ FieldInfo.prototype._initializeDefaultValue = function() {
         var constVal = this.constantValueAttribute;
         if (constVal.tag == ConstantPoolInfo.tags.STRING)
         {
-            //debugPrintToConsole("Initializing string field...");
+            //JVM.debugPrint("Initializing string field...");
             this.value = getJavaString(constVal.string);
         }
         else

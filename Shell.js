@@ -30,6 +30,15 @@ function Shell(console, motd) {
 
 	//Prompt for input.
 	this.console.promptForInput(this.ps1);
+
+	//Register commands.
+	this.registerCommand(this); //'help' command.
+	this.registerCommand(new ShellCommand("test", "Debug", "A test command that prints back the arguments fed to it.", commandTest));
+	this.registerCommand(new ShellCommand("execute", "Java", "Execute the specified Java program.", execute));
+	this.registerCommand(new ShellCommand("listloadedclasses", "Java", "List all of the currently loaded Java classes.", listLoadedClasses));
+	this.registerCommand(new ShellCommand("clearstack", "Debug", "Clear the Java stack.", clearstack));
+	this.registerCommand(new ShellCommand("toggledebug", "Debug", "Toggle debugging output (greatly slows down execution speed).", toggleDebug));
+	this.registerCommand(new ShellCommand("printmethod", "Debug", "Print the bytecode of the specified method. Specify the full classname, method name, and descriptor as arguments.", printMethod));
 }
 
 /**
@@ -161,7 +170,7 @@ Shell.prototype.advanceCommandHistory = function(delta, text) {
 	//Save the current entry.
 	this.commandHistory[this.commandIndex] = text;
 	this.commandIndex = newIndex;
-	CONSOLE.promptForInput(this.ps1, this.commandHistory[this.commandIndex]);
+	VM.getConsole().promptForInput(this.ps1, this.commandHistory[this.commandIndex]);
 };
 
 /*** ShellCommand Interface Functions ***/
@@ -267,19 +276,20 @@ ShellCommand.prototype.getDescription = function() {
  * Executes the main function of a given class.
  */
 function execute(shell, className) { //+ arguments
-	assert(STACK.empty());
+	assert(JVM.getExecutingThread().isStackEmpty());
 	
+	var classInfo = JVM.getLoadedClass(className);
+
 	//Ensure the class exists.
-	if (!(className in CLASSES))
+	if (classInfo === undefined)
 	{
 		shell.stderr("ERROR: " + className + " is not currently loaded.\n");
 		return;
 	}
-	
-	var classInfo = CLASSES[className];
+
 	var mainMethod = classInfo.getMethodAssert("main", "([Ljava/lang/String;)V");
 	
-	var stringClass = Class.getClass("java/lang/String");
+	var stringClass = JVM.getClass("java/lang/String");
 	var args = new JavaArray(Data.type.OBJECT, stringClass, 1, arguments.length-1);
 	
 	for (var i = 1; i < arguments.length; i++)
@@ -294,9 +304,9 @@ function execute(shell, className) { //+ arguments
 	MethodRun.createCall(mainMethod, args);
 
 	//TODO: Move this into its own goddamn function which allows for function resumption.
-	while (!STACK.empty())
+	while (!JVM.getExecutingThread().isStackEmpty())
 	{
-		var method = STACK.currentFrame.pop();
+		var method = JVM.getExecutingThread().pop();
 		try
 		{
 			method.execute();
@@ -307,7 +317,7 @@ function execute(shell, className) { //+ arguments
 			if (typeof err !== "string" && typeof err !== "object")
 			{
 				//If the stack is empty, there are no more functions to catch it.
-				if (STACK.empty())
+				if (JVM.getExecutingThread().isStackEmpty())
 				{
 					//TODO: Handle unhandled exceptions here. toString? Call stack?
 					shell.stderr("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".\n");
@@ -320,10 +330,10 @@ function execute(shell, className) { //+ arguments
 			{
 				shell.stderr("JVM Exception: " + err + "\n");
 
-				shell.stdout(STACK.currentFrame.methodInfo.toStringWithCode(PC) + "\n");
+				shell.stdout(JVM.getExecutingThread().getCurrentMethodInfo().toStringWithCode(JVM.getExecutingThread().getPC()) + "\n");
 
 				//Empty the stack. We are done executing.
-				STACK.clear();
+				JVM.getExecutingThread().clearStack();
 			}
 		}
 	}
@@ -338,7 +348,8 @@ function listLoadedClasses(shell) {
 	var className;
 
 	shell.stdout("Currently Loaded Classes:\n");
-	for (className in CLASSES)
+	var classes = JVM.getListOfLoadedClasses();
+	for (className in classes)
 	{
 		shell.stdout("\t" + className + "\n");
 	}
@@ -348,13 +359,16 @@ function listLoadedClasses(shell) {
  * Clears the stack. Useful for when things go bad.
  */
 function clearstack(shell) {
-	STACK = new Stack();
+	JVM.getExecutingThread().clearStack();
 	shell.stduut("Stack is now clear.\n");
 }
 
+/**
+ * Toggle debug mode on/off.
+ */
 function toggleDebug(shell) {
-	DEBUG = !DEBUG;
-	if (DEBUG) {
+	JVM.setDebug(!JVM.isDebug());
+	if (JVM.isDebug()) {
 		shell.stdout("Debug mode is now ON.\n");
 	}
 	else {
@@ -366,7 +380,7 @@ function toggleDebug(shell) {
  * Prints a method with the given classname, methodname, and descriptor.
  */
 function printMethod(shell, className, methodName, descriptor) {
-	var klass = Class.getClass(className);
+	var klass = JVM.getClass(className);
 	var method = klass.getMethodAssert(methodName, descriptor);
 	shell.stdout(method.toStringWithCode());
 }

@@ -13,7 +13,7 @@
  */
 function MethodRun(type, pc, exception) {
     //A MethodRun object always indicates some sort of Context Switch.
-    CONTEXTSWITCH = true;
+    JVM.getExecutingThread().setContextSwitch(true);
     
     this.type = type;
     
@@ -28,7 +28,7 @@ function MethodRun(type, pc, exception) {
     else
         this.exception = undefined;
     
-    //debugPrintToConsole("Creating a methodrun " + this.type + " for " + STACK.currentFrame.methodInfo + "  with PC " + this.pc);
+    //JVM.debugPrint("Creating a methodrun " + this.type + " for " + JVM.getExecutingThread().getCurrentMethodInfo() + "  with PC " + this.pc);
 }
 
 /**
@@ -36,12 +36,13 @@ function MethodRun(type, pc, exception) {
  * the MethodRun object.
  */
 MethodRun.prototype.execute = function() {
-    PC = this.pc;
-    debugPrintToConsole("Executing a methodRun for " + STACK.currentFrame.methodInfo + " with PC " + this.pc);
+    JVM.getExecutingThread().setPC(this.pc);
+    currentMethodInfo = JVM.getExecutingThread().getCurrentMethodInfo();
+    JVM.debugPrint("Executing a methodRun for " + currentMethodInfo + " with PC " + this.pc);
     if (this.type == MethodRun.type.EXCEPTION)
-        STACK.currentFrame.methodInfo.exception(this.exception);
+        currentMethodInfo.exception(this.exception);
     else
-        STACK.currentFrame.methodInfo.execute();
+        currentMethodInfo.execute();
 };
 
 /**
@@ -77,7 +78,7 @@ MethodRun.type = {
  */
 MethodRun.createCall = function(methodInfo) {
     //Create the new frame.
-    STACK.push(methodInfo);
+    JVM.getExecutingThread().pushFrame(methodInfo);
     
     //Push arguments into locals
     var args = Array.prototype.slice.call(arguments);
@@ -86,20 +87,20 @@ MethodRun.createCall = function(methodInfo) {
     var effectiveI = 0;
     for (var i = 0; i < args.length; i++)
     {
-        STACK.currentFrame.setLocal(effectiveI, args[i]);
-        effectiveI = STACK.currentFrame.locals.length;
-        debugPrintToConsole("Arg " + i + ": " + args[i]);
+        JVM.getExecutingThread().setLocal(effectiveI, args[i]);
+        effectiveI = JVM.getExecutingThread().getLocalsLength();
+        JVM.debugPrint("Arg " + i + ": " + args[i]);
     }
     
     //Create a MethodRun object.
     var methodRun = new MethodRun(MethodRun.type.CALL);
     
     //Push MethodRun onto the new frame.
-    STACK.currentFrame.push(methodRun);
+    JVM.getExecutingThread().push(methodRun);
 };
 
 MethodRun.constructObject = function(className, methodDescriptor){
-    var classInfo = Class.getClass(className);
+    var classInfo = JVM.getClass(className);
     var objectRef = classInfo.getInstantiation();
     var args = Array.prototype.slice.call(arguments);
     
@@ -121,28 +122,27 @@ MethodRun.constructObject = function(className, methodDescriptor){
  */
 //MethodRun.callFromNative = function(methodInfo) {
 MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
-    var oldPC = PC;
+    var oldPC = JVM.getExecutingThread().getPC();
     
     //Push on a dummy object to represent the 'resume' MethodRun object
     //that is expected.
     
-    var nativeClass = Class.getClass(className);
+    var nativeClass = JVM.getClass(className);
     var methodInfo = nativeClass.getMethodAssert(methodName, methodDescriptor);
 
     //If the stack isn't empty right now, create a resume object for the previous
     //method.
-    //if (!STACK.empty())
+    //if (!JVM.getExecutingThread().isStackEmpty())
     //  MethodRun.createResume();
 
     //Create a bogus frame for execution [needed if stack is empty]
     //If stack is not empty, we still need it since we cannot easily tell
     //if a frame is bogus or legit.
-    STACK.push(methodInfo);
-    PC = -1;
+    JVM.getExecutingThread().pushFrame(methodInfo);
+    JVM.getExecutingThread().setPC(-1);
     MethodRun.createResume(); //Returning expects this object to be here.
     
-    //var oldStackLength = STACK.length;
-    var oldStackLength = STACK.stack.length;
+    var oldStackLength = JVM.getExecutingThread().getStackLength();
     
     var args = Array.prototype.slice.call(arguments);
     //Get rid of className / methodName
@@ -151,25 +151,25 @@ MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
     
     MethodRun.createCall.apply(null, args);
     
-    while (STACK.stack.length != oldStackLength)
+    while (JVM.getExecutingThread().getStackLength() != oldStackLength)
     {
         //Pop off the methodRun object.
-        //debugPrintToConsole("Popping off a resume");
-        var method = STACK.currentFrame.pop();
+        //JVM.debugPrint("Popping off a resume");
+        var method = JVM.getExecutingThread().pop();
         try
         {
             //Execute it.
             method.execute();
-            //debugPrintToConsole("Finished a function");
+            //JVM.debugPrint("Finished a function");
         }
         catch (err)
         {
             //Rethrow if the exception cannot be handled in the area of the stack made by this
             //native call.
-            if (STACK.length == oldStackLength)
+            if (JVM.getExecutingThread().getStackLength() == oldStackLength)
             {
                 //Pop off our fake frame.
-                STACK.pop();
+                JVM.getExecutingThread().popFrame();
                 throw err;
             }
                 
@@ -177,10 +177,10 @@ MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
             if (typeof err !== "string" && typeof err !== "object")
             {
                 //If the stack is empty, there are no more functions to catch it.
-                if (STACK.empty())
+                if (JVM.getExecutingThread().isStackEmpty())
                 {
                     //TODO: Handle unhandled exceptions here. toString? Call stack?
-                    printErrorToConsole("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".");
+                    JVM.printError("ERROR: Uncaught exception of type " + err.classInfo.thisClassName + ".");
                 }
                 
                 //If the stack is not empty, ignore the exception; it may still be caught.
@@ -193,26 +193,26 @@ MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
         }
     }
 
-    //debugPrintToConsole("FINISHED A NATIVE CALL");
+    //JVM.debugPrint("FINISHED A NATIVE CALL");
 
     //Pop off our dummy resume object.
-    STACK.currentFrame.pop();
+    JVM.getExecutingThread().pop();
     
     //By default, we return nothing if there's no return value.
     var retval;
     
     //Pop off the return value if it exists.
-    if (!STACK.currentFrame.empty())
-        retval = STACK.currentFrame.pop();
+    if (!JVM.getExecutingThread().isFrameEmpty())
+        retval = JVM.getExecutingThread().pop();
     
     //Pop off our bogus frame.
-    STACK.pop();
+    JVM.getExecutingThread().popFrame();
     
-    PC = oldPC;
+    JVM.getExecutingThread().setPC(oldPC);
     
     //A call from JS should not cause a context switch. It may be called from within
     //another function!
-    CONTEXTSWITCH = false;
+    JVM.getExecutingThread().setContextSwitch(false);
     
     return retval;
 };
@@ -222,13 +222,13 @@ MethodRun.callFromNative = function(className, methodName, methodDescriptor) {
  */
 MethodRun.throwException = function(exception) {
     //Create a MethodRun object.
-    var methodRun = new MethodRun(MethodRun.type.EXCEPTION, PC, exception);
+    var methodRun = new MethodRun(MethodRun.type.EXCEPTION, JVM.getExecutingThread().getPC(), exception);
     
     //Push it and the exception onto the stack, if the stack is not empty.
-    if (!STACK.empty())
+    if (!JVM.getExecutingThread().isStackEmpty())
     {
-        STACK.currentFrame.push(exception);
-        STACK.currentFrame.push(methodRun);
+        JVM.getExecutingThread().push(exception);
+        JVM.getExecutingThread().push(methodRun);
     }
     
     //Throw a JS exception.
@@ -245,10 +245,10 @@ MethodRun.throwException = function(exception) {
 MethodRun.createResume = function() {
     var args = Array.prototype.slice.call(arguments);
     if (args.length > 0)
-        PC = args[0];
+        JVM.getExecutingThread().setPC(args[0]);
     
-    var methodRun = new MethodRun(MethodRun.type.RESUME, PC);
-    STACK.currentFrame.push(methodRun);
+    var methodRun = new MethodRun(MethodRun.type.RESUME, JVM.getExecutingThread().getPC());
+    JVM.getExecutingThread().push(methodRun);
 };
 
 /**
@@ -259,18 +259,18 @@ MethodRun.createResume = function() {
  */
 MethodRun.createReturn = function() {
     //Pop off the old method's frame.
-    STACK.pop();
+    JVM.getExecutingThread().popFrame();
     
     var args = Array.prototype.slice.call(arguments);
     //If we have a return value...
     if (args.length > 0)
     {
         //Pop off the saved PC, push the return value, push back on the saved PC.
-        var savedPC = STACK.currentFrame.pop();
-        STACK.currentFrame.push(args[0]);
-        STACK.currentFrame.push(savedPC);
+        var savedPC = JVM.getExecutingThread().pop();
+        JVM.getExecutingThread().push(args[0]);
+        JVM.getExecutingThread().push(savedPC);
     }
     
     //Manually change the CONTEXTSWITCH variable.
-    CONTEXTSWITCH = true;
+    JVM.getExecutingThread().setContextSwitch(true);
 };

@@ -47,7 +47,7 @@ JavaObject.prototype.getField = function(className, fieldName, fieldDescriptor)
 		return this.fields[className][fieldName];
 	}
 	
-	var classInfo = Class.getClass(className);
+	var classInfo = JVM.getClass(className);
 	return classInfo.getStatic(fieldName, fieldDescriptor);
 };
 
@@ -83,7 +83,7 @@ JavaObject.prototype.setField = function(className, fieldName, fieldDescriptor, 
 	}
 	else
 	{
-		var classInfo = Class.getClass(className);
+		var classInfo = JVM.getClass(className);
 		classInfo.setStatic(fieldName, fieldDescriptor, newValue);
 	}
 };

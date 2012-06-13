@@ -37,7 +37,7 @@ Frame.prototype.push = function(x){
 };
 
 Frame.prototype.pop = function() {
-    assert(!this.empty());
+    assert(!this.isEmpty());
     popElement();
     return this.stack.pop();
 };
@@ -50,7 +50,7 @@ Frame.prototype.length = function() {
     return this.stack.length;
 };
 
-Frame.prototype.empty = function() {
+Frame.prototype.isEmpty = function() {
     return this.length() === 0;
 };
 
@@ -64,4 +64,12 @@ Frame.prototype.setLocal = function(index, value) {
 
 Frame.prototype.getLocal = function(index) {
     return this.locals[index];
-}
+};
+
+Frame.prototype.getMethodInfo = function() {
+    return this.methodInfo;
+};
+
+Frame.prototype.getLocalsLength = function() {
+    return this.locals.length;
+};

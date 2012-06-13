@@ -14,7 +14,7 @@ function Class(javaClassReader) {
 
     //Why not?
     if (magic != 0xCAFEBABE) {
-        printErrorToConsole("ERROR: Magic value 0xCAFEBABE not found! Instead: " + magic);
+        JVM.printError("ERROR: Magic value 0xCAFEBABE not found! Instead: " + magic);
     }
 
     //u2 minor_version;
@@ -34,11 +34,11 @@ function Class(javaClassReader) {
     //Register myself. This is very important, or else we could get into infinite loading loops.
     //Trying a Hack to load system
     if (this.thisClassName == "System"){
-        CLASSES["java/lang/System"] = this;
+        JVM.registerClass("java/lang/System", this);
     }else if (this.thisClassName == "PrintStream"){
-        CLASSES["java/io/PrintStream"] = this;
+        JVM.registerClass("java/io/PrintStream", this);
     }else{
-        CLASSES[this.thisClassName] = this;
+        JVM.registerClass(this.thisClassName, this);
     }
     
     
@@ -104,7 +104,7 @@ Class.prototype.getSuperClass = function() {
     if (this.superClass !== undefined)
         return this.superClass;
         
-    this.superClass = Class.getClass(this.superClassName);
+    this.superClass = JVM.getClass(this.superClassName);
     return this.superClass;
 };
 
@@ -160,7 +160,7 @@ Class.prototype.initialize = function() {
     //Deprecation check
     if (this.isDeprecated())
     {
-        printErrorToConsole("WARNING: Using deprecated class \"" + this.name + "\".");
+        JVM.printError("WARNING: Using deprecated class \"" + this.name + "\".");
         this.deprecationWarn = true;
     }
     
@@ -176,7 +176,7 @@ Class.prototype.initialize = function() {
     if (staticInitializer !== undefined)
     {
         MethodRun.callFromNative(this.thisClassName, "<clinit>", "()V");
-        //STACK.currentFrame.pop(); //HACK: callFromNative creates a resume for the fcn that called this.
+        //JVM.getExecutingThread().popFrame(); //HACK: callFromNative creates a resume for the fcn that called this.
     }
 };
 
@@ -285,12 +285,12 @@ Class.prototype.isA = function(className) {
         
     for (var i in this.interfaces)
     {
-        var interfaceInfo = Class.getClass(this.interfaces[i].className);
+        var interfaceInfo = JVM.getClass(this.interfaces[i].className);
         if (interfaceInfo.isA(className))
             return true;
     }
     
-    return Class.getClass(this.superClassName).isA(className);
+    return JVM.getClass(this.superClassName).isA(className);
 };
 
 /**
@@ -299,7 +299,7 @@ Class.prototype.isA = function(className) {
 Class.prototype.implementsInterface = function(interfaceName) {
     for (var i in this.interfaces)
     {
-        var interfaceInfo = Class.getClass(this.interfaces[i].className);
+        var interfaceInfo = JVM.getClass(this.interfaces[i].className);
         if (interfaceInfo.isA(interfaceName))
             return true;
     }
@@ -353,7 +353,7 @@ Class.prototype.getMethod = function(name, descriptor)
     {
         var method = this.methods[i];
         if(method.name == name){
-            debugPrintToConsole(method.descriptor);
+            JVM.debugPrint(method.descriptor);
         }
         if (method.name == name && method.descriptor == descriptor)
             return method;
@@ -426,39 +426,3 @@ Class.AccessFlags = {
     INTERFACE : 0x0200,
     ABSTRACT : 0x0400
 };
-
-/**
- * Our "class loader". Given a class name, it either loads it
- * from the array, or, failing that, loads it from the JRE.
- */
-Class.getClass = function(className) {
-    //Check if it's in the array.
-    if (className in CLASSES)
-        return CLASSES[className];
-        
-    debugPrintToConsole("Loading class: " + className);
- 
-    var url = document.URL; //Url now has the url up to the current directory without the trailing slash
-    url = url.substr(0, url.lastIndexOf('/'));
-
-    //Synchronously get the JRE class.
-    var request = new XMLHttpRequest();
-    request.overrideMimeType('text/plain; charset=x-user-defined');
-    request.open('GET', url + "/jre/" + className + ".class", false);
-    request.send(null);
-
-    //Ensure success.
-    assert(request.status == 200);
-
-    //Wrap the data so it's interpreted correctly.
-    var contentWrapped = {};
-    contentWrapped.content = request.responseText;
-    contentWrapped.length = contentWrapped.content.length;
-    contentWrapped.charCodeAt = function(x) { return this.content.charCodeAt(x) & 0xFF; };
-    
-    //Load the class.
-    var javaClassReader = new JavaClassReader(contentWrapped);
-    var aClass = new Class(javaClassReader);
-    
-    return aClass;
-}
