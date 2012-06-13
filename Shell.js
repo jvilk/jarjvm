@@ -345,13 +345,12 @@ function execute(shell, className) { //+ arguments
  * Lists all of the currently loaded classes.
  */
 function listLoadedClasses(shell) {
-	var className;
-
 	shell.stdout("Currently Loaded Classes:\n");
 	var classes = JVM.getListOfLoadedClasses();
-	for (className in classes)
+	var i ;
+	for (i=0; i < classes.length; i++)
 	{
-		shell.stdout("\t" + className + "\n");
+		shell.stdout("\t" + classes[i] + "\n");
 	}
 }
 

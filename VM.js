@@ -107,8 +107,3 @@ VM.prototype.getClass = function(className) {
 VM.prototype.getListOfLoadedClasses = function() {
 	return this.classLoader.getListOfLoadedClasses();
 };
-
-//TODO: Merge nasty global methods into this bad boy. Maybe make convenience methods.
-//TODO: Perhaps the classes list should go into a ClassLoader object?
-//TODO: VM should handle startup (create VM, call VM.initialize()). 
-//      That way it can seed all of the objects with its presence.
