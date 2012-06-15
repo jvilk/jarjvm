@@ -1,30 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<script type="text/javascript" src="Util.js"></script>
-		<script type="text/javascript" src="Thread.js"></script>
-		<script type="text/javascript" src="Stack.js"></script>
-		<script type="text/javascript" src="console.js"></script>
-		<script type="text/javascript" src="Shell.js"></script>
-		<script type="text/javascript" src="Primitive.js"></script>
-		<script type="text/javascript" src="JavaObject.js"></script>
-		<script type="text/javascript" src="JavaScriptStackTrace.js"></script>
-		<script type="text/javascript" src="Attributes.js"></script>
-		<script type="text/javascript" src="ByteCode.js"></script>
-		<script type="text/javascript" src="Class.js"></script>
-		<script type="text/javascript" src="ConstantPoolInfo.js"></script>
-		<script type="text/javascript" src="Deflate.js"></script>
-		<script type="text/javascript" src="FieldInfo.js"></script>
-		<script type="text/javascript" src="Frame.js"></script>
-		<script type="text/javascript" src="NativeFunctions.js"></script>
-		<script type="text/javascript" src="MethodInfo.js"></script>
-		<script type="text/javascript" src="MethodRun.js"></script>
-		<script type="text/javascript" src="Instruction.js"></script>
-		<script type="text/javascript" src="Descriptor.js"></script>
-		<script type="text/javascript" src="Long.js"></script>
-		<script type="text/javascript" src="JavaClassReader.js"></script>
-		<script type="text/javascript" src="ClassLoader.js"></script>
-		<script type="text/javascript" src="VM.js"></script>
+		<script data-main="main.js" src="require.js"></script>
 		<LINK href="indexStyle.css" rel="stylesheet" type="text/css" />
 		
 		<title>JAR JVM</title>
@@ -58,66 +35,6 @@
 		<output id="list"></output>
 		<br />
 		<br />
-		<script type="text/javascript">
-			/** Include all of our scripts **/
-			//NOTE: Stack is included above because we use it for a global.
-		
-			/**
-			 * Prevent Chrome from going back a page when backspace is hit.
-			 */
-			function suppressBackspace(evt) {
-			    evt = evt || window.event;
-			    var target = evt.target || evt.srcElement;
-
-			    if ((evt.keyCode === 8 || evt.keyCode === Console.specialCharacters.UP || evt.keyCode === Console.specialCharacters.DOWN ||
-			    	evt.keyCode === Console.specialCharacters.END || evt.keyCode === Console.specialCharacters.HOME) && 
-			    	!/input|textarea/i.test(target.nodeName)) {
-			        return false;
-			    }
-			}
-
-			//Suppresses Chrome's backspace behavior (goes back a page).
-			document.onkeydown = suppressBackspace;
-			document.onkeypress = suppressBackspace;
-
-			JVM = new VM("console", "Welcome the the JAR Javascript JVM!\nIf you need help with this console type 'help' and press Enter\n--------------------------------------------------------------------------------\n");
-			JVM.initialize();
-
-			// !!!HACK!!!
-			// Current Constant Pool
-			// ONLY USED DURING CONSTANT POOL INITIALIZATION due to laziness
-			// Should refactor out.
-			CONSTANTPOOL = undefined;
-
-			function handleFileSelect(evt) {
-				//Initialize system.
-				JVM.println("Loading User Classes...\n");
-				var files = evt.target.files;
-				// FileList object
-
-				for(var i = 0, f; f = files[i]; i++) {
-
-					var reader = new FileReader();
-
-					reader.onloadend = function(evt) {
-						if(evt.target.readyState == FileReader.DONE) {
-							JVM.println("File Read In");
-							var bytes = evt.target.result;
-							var javaClassReader = new JavaClassReader(bytes);
-							var aClass = new Class(javaClassReader);
-							assert(javaClassReader.index == javaClassReader.data.length);
-						}
-					};
-
-					//reader.readAsArrayBuffer(f);
-					reader.readAsBinaryString(f);
-				}
-			}
-
-
-			document.getElementById('files').addEventListener('change', handleFileSelect, false);
-
-		</script>
 		</div>
 	</body>
 </html>
