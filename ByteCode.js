@@ -1,4 +1,5 @@
-define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
+define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'ConstantPoolInfo'],
+        function(Util, Data, MethodRun, Primitives, JavaArray, ConstantPoolInfo) {
     /**
      * Contains the code for every bytecode instruction.
      */
@@ -550,7 +551,7 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
             }
         }
         
-        ByteCode.push(new Integer(result));
+        ByteCode.push(Primitives.getInteger(result));
     };
 
     ByteCode.cmpg = function() {
@@ -675,7 +676,7 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
             ByteCode.throwException("NullPointerException");
             return;
         }
-        ByteCode.push(new Integer(array.length));
+        ByteCode.push(Primitives.getInteger(array.length));
         //JavaArray.array.length
     };
     ByteCode.instrs[ByteCode.codes.astore] = function(index) {
@@ -709,7 +710,7 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
         ByteCode.storeToArray();
     };
     ByteCode.instrs[ByteCode.codes.bipush] = function(byteValue) {
-        ByteCode.push(new Byte(byteValue));
+        ByteCode.push(Primitives.getByte(byteValue));
     };
     ByteCode.instrs[ByteCode.codes.caload] = function() {
         ByteCode.loadFromArray();
@@ -752,10 +753,10 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
         ByteCode.cmpl();
     };
     ByteCode.instrs[ByteCode.codes.dconst_0] = function() {
-        ByteCode.push(new Double(0.0));
+        ByteCode.push(Primitives.getDouble(0.0));
     };
     ByteCode.instrs[ByteCode.codes.dconst_1] = function() {
-        ByteCode.push(new Double(1.0));
+        ByteCode.push(Primitives.getDouble(1.0));
     };
     ByteCode.instrs[ByteCode.codes.ddiv] = function() {
         ByteCode.divide();
@@ -934,14 +935,14 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
         ByteCode.cmpl();
     };
     ByteCode.instrs[ByteCode.codes.fconst_0] = function() {
-        ByteCode.push(new Float(0.0));
+        ByteCode.push(Primitives.getFloat(0.0));
     };
     ByteCode.instrs[ByteCode.codes.fconst_1] = function() {
-        ByteCode.push(new Float(1.0));
+        ByteCode.push(Primitives.getFloat(1.0));
         return;
     };
     ByteCode.instrs[ByteCode.codes.fconst_2] = function() {
-        ByteCode.push(new Float(2.0));
+        ByteCode.push(Primitives.getFloat(2.0));
     };
     ByteCode.instrs[ByteCode.codes.fdiv] = function() {
         ByteCode.divide();
@@ -1048,25 +1049,25 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
         ByteCode.storeToArray();
     };
     ByteCode.instrs[ByteCode.codes.iconst_0] = function() {
-        ByteCode.push(new Integer(0));
+        ByteCode.push(Primitives.getInteger(0));
     };
     ByteCode.instrs[ByteCode.codes.iconst_1] = function() {
-        ByteCode.push(new Integer(1));
+        ByteCode.push(Primitives.getInteger(1));
     };
     ByteCode.instrs[ByteCode.codes.iconst_2] = function() {
-        ByteCode.push(new Integer(2));
+        ByteCode.push(Primitives.getInteger(2));
     };
     ByteCode.instrs[ByteCode.codes.iconst_3] = function() {
-        ByteCode.push(new Integer(3));
+        ByteCode.push(Primitives.getInteger(3));
     };
     ByteCode.instrs[ByteCode.codes.iconst_4] = function() {
-        ByteCode.push(new Integer(4));
+        ByteCode.push(Primitives.getInteger(4));
     };
     ByteCode.instrs[ByteCode.codes.iconst_5] = function() {
-        ByteCode.push(new Integer(5));
+        ByteCode.push(Primitives.getInteger(5));
     };
     ByteCode.instrs[ByteCode.codes.iconst_m1] = function() {
-        ByteCode.push(new Integer(-1));
+        ByteCode.push(Primitives.getInteger(-1));
     };
     ByteCode.instrs[ByteCode.codes.idiv] = function() {
         ByteCode.divide();
@@ -1207,7 +1208,7 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
     };
     ByteCode.instrs[ByteCode.codes.iinc] = function(index, constant) {
         var currentValue = ByteCode.getLocal(index);
-        ByteCode.setLocal(index, new Integer(currentValue.value + constant));
+        ByteCode.setLocal(index, Primitives.getInteger(currentValue.value + constant));
     };
     ByteCode.instrs[ByteCode.codes.iload] = function(index) {
         ByteCode.loadFromLocal(index);
@@ -1234,14 +1235,14 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
         var objectRef = ByteCode.pop();
 
         if(objectRef === null) {
-            ByteCode.push(new Integer(0));
+            ByteCode.push(Primitives.getInteger(0));
             return;
         }
 
         if(objectRef.isA(className))
-            ByteCode.push(new Integer(1));
+            ByteCode.push(Primitives.getInteger(1));
         else
-            ByteCode.push(new Integer(0));
+            ByteCode.push(Primitives.getInteger(0));
     };
     ByteCode.instrs[ByteCode.codes.invokeinterface] = function(methodRef, count) {//Count used for historical reasons
         JVM.debugPrint(methodRef.toString());
@@ -1412,10 +1413,10 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
         ByteCode.cmpg();
     };
     ByteCode.instrs[ByteCode.codes.lconst_0] = function() {
-        ByteCode.push(new Long.fromInt(0));
+        ByteCode.push(Primitives.getLong.fromInt(0));
     };
     ByteCode.instrs[ByteCode.codes.lconst_1] = function() {
-        ByteCode.push(new Long.fromInt(1));
+        ByteCode.push(Primitives.getLong.fromInt(1));
     };
     ByteCode.instrs[ByteCode.codes.ldc] = function(constant) {
         if(constant.tag == ConstantPoolInfo.tags.INTEGER) {
@@ -1618,7 +1619,7 @@ define(['Util', 'Data', 'MethodRun'], function(Util, Data, MethodRun) {
         ByteCode.storeToArray();
     };
     ByteCode.instrs[ByteCode.codes.sipush] = function(byteValue) {
-        ByteCode.push(new Short(byteValue));
+        ByteCode.push(Primitives.getShort(byteValue));
     };
     ByteCode.instrs[ByteCode.codes.swap] = function() {
         var value1 = ByteCode.pop();

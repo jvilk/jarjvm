@@ -1,4 +1,4 @@
-define(['FieldDescriptor', 'JavaArray', 'Char', 'JavaScriptStackTrace'], function(FieldDescriptor, JavaArray, Char, printStackTrace) {
+define(['FieldDescriptor', 'JavaArray', 'JavaScriptStackTrace', 'Primitives', 'MethodRun'], function(FieldDescriptor, JavaArray, printStackTrace, Primitives, MethodRun) {
     var Util = {};
 
     /* child must be a reference to this, and parentConstructor is the string that is the name of the contructor */
@@ -62,7 +62,7 @@ define(['FieldDescriptor', 'JavaArray', 'Char', 'JavaScriptStackTrace'], functio
         var charArray = new JavaArray(Data.type.CHAR, null, 1, string.length);
         for (var i = 0; i < string.length; i++)
         {
-            charArray.set(i, new Char(string.charCodeAt(i)));
+            charArray.set(i, Primitives.getChar(string.charCodeAt(i)));
         }
         
         return MethodRun.constructObject("java/lang/String", "([C)V", charArray);

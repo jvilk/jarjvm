@@ -1,4 +1,4 @@
-define(['Util', 'JavaArray', 'console', 'require'], function(Util, JavaArray, Console, require) {
+define(['Util', 'JavaArray', 'console', 'require', 'MethodRun'], function(Util, JavaArray, Console, require, MethodRun) {
     /**
      * Contains logic for the shell.
      * Prints output to the console, which should have a 'print' method, a promptForInput command, and a promptForInputByCharacter command.

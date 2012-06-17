@@ -1,5 +1,5 @@
-define(['Primitive', 'Float', 'Short', 'Char', 'Bool', 'Byte', 'Double', 'Integer', 'Long', 'Util', 'Attributes', 'FieldDescriptor', 'ConstantPoolInfo'],
-    function(Primitive, Float, Short, Char, Bool, Byte, Double, Integer, Long, Util, Attribute, FieldDescriptor, ConstantPoolInfo) {
+define(['Primitives', 'Util', 'Attributes', 'FieldDescriptor', 'ConstantPoolInfo'],
+    function(Primitives, Util, Attribute, FieldDescriptor, ConstantPoolInfo) {
     /**
      * FieldInfo object
      */
@@ -96,28 +96,28 @@ define(['Primitive', 'Float', 'Short', 'Char', 'Bool', 'Byte', 'Double', 'Intege
             switch(this.fieldDescriptor.baseValue)
             {
                 case FieldDescriptor.baseType.BYTE:
-                    this.value = new Byte(0);
+                    this.value = Primitives.getByte(0);
                     break;
                 case FieldDescriptor.baseType.CHAR:
-                    this.value = new Char(0);
+                    this.value = Primitives.getChar(0);
                     break;
                 case FieldDescriptor.baseType.DOUBLE:
-                    this.value = new Double(0);
+                    this.value = Primitives.getDouble(0);
                     break;
                 case FieldDescriptor.baseType.FLOAT:
-                    this.value = new Float(0);
+                    this.value = Primitives.getFloat(0);
                     break;
                 case FieldDescriptor.baseType.INTEGER:
-                    this.value = new Integer(0);
+                    this.value = Primitives.getInteger(0);
                     break;
                 case FieldDescriptor.baseType.LONG:
-                    this.value = Long.fromNumber(0);
+                    this.value = Primitives.getLongFromNumber(0);
                     break;
                 case FieldDescriptor.baseType.SHORT:
-                    this.value = new Short(0);
+                    this.value = Primitives.getShort(0);
                     break;
                 case FieldDescriptor.baseType.BOOLEAN:
-                    this.value = new Bool(0);
+                    this.value = Primitives.getBool(0);
                     break;
                 default:
                     Util.assert(false);

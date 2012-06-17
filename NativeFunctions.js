@@ -1,4 +1,4 @@
-define(['Util', 'MethodRun'], function(Util, MethodRun) {
+define(['Util', 'MethodRun', 'Primitives'], function(Util, MethodRun, Primitives) {
     NativeFunctions = {};
 
     /**
@@ -87,7 +87,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
     //Used to print a boolean for system.out.println
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(Z)V", function(){
-        var arrayOfArguments = getArguments("(B)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(B)V");
         var booleanToPrint = arrayOfArguments[0];
         if (booleanToPrint.value == 1){
             JVM.println("True");
@@ -100,7 +100,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
     //Used to print a character for System.out.println
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(C)V", function(){
-        var arrayOfArguments = getArguments("(C)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(C)V");
         var charToPrint = arrayOfArguments[0];
         JVM.println(String.fromCharCode(charToPrint.value));
         MethodRun.createReturn();
@@ -109,7 +109,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
     //Used to print an interger for System.out.println
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(I)V", function(){
-        var arrayOfArguments = getArguments("(I)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(I)V");
         var intToPrint = arrayOfArguments[0];
         JVM.println(intToPrint.value.toString());
         MethodRun.createReturn();
@@ -118,7 +118,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
     //Print long
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(J)V", function(){
-        var arrayOfArguments = getArguments("(J)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(J)V");
         var longToPrint = arrayOfArguments[0];
         JVM.println(longToPrint.toStringOld());
         MethodRun.createReturn();
@@ -126,7 +126,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     );
     //Print double
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(D)V", function(){
-        var arrayOfArguments = getArguments("(D)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(D)V");
         var doubleToPrint = arrayOfArguments[0];
         JVM.println(doubleToPrint.value.toString());
         MethodRun.createReturn();
@@ -135,7 +135,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
     //Print float
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(F)V", function(){
-        var arrayOfArguments = getArguments("(F)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(F)V");
         var floatToPrint = arrayOfArguments[0];
         JVM.println(floatToPrint.value.toString());
         MethodRun.createReturn();
@@ -162,7 +162,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
     //Print char[]
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "([C)V", function(){
-        var arrayOfArguments = getArguments("([C)V");
+        var arrayOfArguments = NativeFunctions.getArguments("([C)V");
         var arrayToPrint = arrayOfArguments[0].array;
         printCharArrayToConsole(arrayToPrint);
         MethodRun.createReturn();
@@ -171,7 +171,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     //Print string - Take the stirng object then get its field "value" which is a char[]. Then call our char array print
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(Ljava/lang/String;)V", function(){
         //alert("Printing String");
-        var arrayOfArguments = getArguments("(Ljava/lang/String;)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/String;)V");
         var string = arrayOfArguments[0];
         var arrayToPrint = string.getField("java/lang/String", "value", "[C");
         //alert(arrayToPrint + ": " + arrayToPrint.array);
@@ -207,25 +207,25 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     );
 
     /*NativeFunctions.registerNativeFunction("java/lang/System", "setIn0", "(Ljava/io/InputStream;)V", function(){
-        var arrayOfArguments = getArguments("(Ljava/io/InputStream;)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/io/InputStream;)V");
         var returnType = getReturnType("(Ljava/io/InputStream;)V");
         //Probably Don't Need
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/System", "setOut0", "(Ljava/io/PrintStream;)V", function(){
-        var arrayOfArguments = getArguments("(Ljava/io/PrintStream;)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/io/PrintStream;)V");
         var returnType = getReturnType("(Ljava/io/PrintStream;)V");
         //Probably Don't Need
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/System", "setErr0", "(Ljava/io/PrintStream;)V", function(){
-        var arrayOfArguments = getArguments("(Ljava/io/PrintStream;)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/io/PrintStream;)V");
         var returnType = getReturnType("(Ljava/io/PrintStream;)V");
         //Probably Don't Need
         }
     );*/
     NativeFunctions.registerNativeFunction("java/lang/System", "currentTimeMillis", "()J", function(){
-            var arrayOfArguments = getArguments("()J"); //This will be empty since currentTimeMillis doesn't take any arguments
+            var arrayOfArguments = NativeFunctions.getArguments("()J"); //This will be empty since currentTimeMillis doesn't take any arguments
             var returnType = getReturnType("()J");
             var long_= Long.fromNumber(56456456456);
             //alert(long_.getLowBits());
@@ -234,7 +234,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
         }
     );
     /*NativeFunctions.registerNativeFunction("java/lang/System", "nanoTime", "()J", function(){
-            var arrayOfArguments = getArguments("()J");
+            var arrayOfArguments = NativeFunctions.getArguments("()J");
             var returnType = getReturnType("()J");
             var time = currentTime = Date.now()*1000000;
             // No better accuracy than Miliseconds in JS
@@ -243,7 +243,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     );*/
 
     NativeFunctions.registerNativeFunction("java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V", function(){
-            var arrayOfArguments = getArguments("(Ljava/lang/Object;ILjava/lang/Object;II)V");
+            var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/Object;ILjava/lang/Object;II)V");
             var srcArray = arrayOfArguments[0];
             var srcPos = arrayOfArguments[1].value;
             var destArray = arrayOfArguments[2];
@@ -270,17 +270,17 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     );
 
     /*NativeFunctions.registerNativeFunction("java/lang/System", "identityHashCode", "(Ljava/lang/Object;)I", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/Object;)I");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/Object;)I");
         var returnType = getReturnType("(Ljava/lang/Object;)I");
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/System", "initProperties", "(Ljava/util/Properties;)Ljava/util/Properties;", function(){
-        var arrayOfArguments = getArguments("(Ljava/util/Properties;)Ljava/util/Properties;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/util/Properties;)Ljava/util/Properties;");
         var returnType = getReturnType("(Ljava/util/Properties;)Ljava/util/Properties;");
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/System", "mapLibraryName", "(Ljava/lang/String;)Ljava/lang/String;", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/String;)Ljava/lang/String;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/String;)Ljava/lang/String;");
         var returnType = getReturnType("(Ljava/lang/String;)Ljava/lang/String;");
         }
     );*/
@@ -311,7 +311,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
     //java/lang/Class.desiredAssertionStatus0 (Ljava/lang/Class;)Z
     NativeFunctions.registerNativeFunction("java/lang/Class", "desiredAssertionStatus0", "(Ljava/lang/Class;)Z", function(){
-            MethodRun.createReturn(new Bool(0)); //TODO: Implement.
+            MethodRun.createReturn(Primitives.getBool(0)); //TODO: Implement.
         }
     );
 
@@ -325,7 +325,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     //sun/reflect/Reflection.getCallerClass (I)Ljava/lang/Class;
     //sun/reflect/Reflection.getCallerClass (I)Ljava/lang/Class;
     NativeFunctions.registerNativeFunction("sun/reflect/Reflection", "getCallerClass", "(I)Ljava/lang/Class;", function(){
-        var theArguments = getArguments("(I)Ljava/lang/Class;");
+        var theArguments = NativeFunctions.getArguments("(I)Ljava/lang/Class;");
         
         var numberOfFrames = theArguments[0].value;
         var frameOfInterest = JVM.getExecutingThread().getStack().stack[JVM.getExecutingThread().getStack().length -1 - numberOfFrames];
@@ -342,7 +342,7 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     //java/security/AccessController.doPrivileged (Ljava/security/PrivilegedAction;)Ljava/lang/Object;
     //java/security/AccessController.doPrivileged (Ljava/security/PrivilegedAction;)Ljava/lang/Object;
     NativeFunctions.registerNativeFunction("java/security/AccessController", "doPrivileged", "(Ljava/security/PrivilegedAction;)Ljava/lang/Object;", function(){
-        var theArguments = getArguments("(Ljava/security/PrivilegedAction;)Ljava/lang/Object;");
+        var theArguments = NativeFunctions.getArguments("(Ljava/security/PrivilegedAction;)Ljava/lang/Object;");
         
         var action = theArguments[0].classInfo.thisClassName;
         var obj = MethodRun.callFromNative(action, "run" ,"()Ljava/lang/Object;");
@@ -353,160 +353,160 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
 
 
     /*NativeFunctions.registerNativeFunction("java/lang/Object", "getClass", "()Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/Class;");
         var returnType = getReturnType("()Ljava/lang/Class;");
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/Object", "hashCode", "()I", function(){
-        var arrayOfArguments = getArguments("()I");
+        var arrayOfArguments = NativeFunctions.getArguments("()I");
         var returnType = getReturnType("()I");
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/Object", "clone", "()Ljava/lang/Object;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/Object;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/Object;");
         var returnType = getReturnType("()Ljava/lang/Object;");
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/Object", "notify", "()V", function(){
-        var arrayOfArguments = getArguments("()V");
+        var arrayOfArguments = NativeFunctions.getArguments("()V");
         var returnType = getReturnType("()V");
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/Object", "notifyAll", "()V", function(){
-        var arrayOfArguments = getArguments("()V");
+        var arrayOfArguments = NativeFunctions.getArguments("()V");
         var returnType = getReturnType("()V");
         }
     );
     NativeFunctions.registerNativeFunction("java/lang/Object", "wait", "(J)V", function(){
-        var arrayOfArguments = getArguments("(J)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(J)V");
         var returnType = getReturnType("(J)V");
         }
     );
     // ---STRING.CLASS---
     NativeFunctions.registerNativeFunction("java/lang/String", "intern", "()Ljava/lang/String;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/String;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/String;");
         var returnType = getReturnType("()Ljava/lang/String;");
         }
     );
 
     // ---CLASS.CLASS---
     NativeFunctions.registerNativeFunction("java/lang/Class", "registerNatives", "()V", function(){
-            var arrayOfArguments = getArguments("()V");
+            var arrayOfArguments = NativeFunctions.getArguments("()V");
             var returnType = getReturnType("()V");
             //TODO: registerNatives
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "forName0", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
         var returnType = getReturnType("(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "isInstance", "(Ljava/lang/Object;)Z", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/Object;)Z");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/Object;)Z");
         var returnType = getReturnType("(Ljava/lang/Object;)Z");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "isAssignableFrom", "(Ljava/lang/Object;)Z", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/Object;)Z");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/Object;)Z");
         var returnType = getReturnType("(Ljava/lang/Object;)Z");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "isInterface", "()Z", function(){
-        var arrayOfArguments = getArguments("()Z");
+        var arrayOfArguments = NativeFunctions.getArguments("()Z");
         var returnType = getReturnType("()Z");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "isArray", "()Z", function(){
-        var arrayOfArguments = getArguments("()Z");
+        var arrayOfArguments = NativeFunctions.getArguments("()Z");
         var returnType = getReturnType("()Z");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "isPrimitive", "()Z", function(){
-        var arrayOfArguments = getArguments("()Z");
+        var arrayOfArguments = NativeFunctions.getArguments("()Z");
         var returnType = getReturnType("()Z");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getName0", "()Ljava/lang/String;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/String;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/String;");
         var returnType = getReturnType("()Ljava/lang/String;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getClassLoader0", "()Ljava/lang/ClassLoader;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/ClassLoader;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/ClassLoader;");
         var returnType = getReturnType("()Ljava/lang/ClassLoader;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getSuperclass", "()Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/Class;");
         var returnType = getReturnType("()Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getInterfaces", "()[Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("()[Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("()[Ljava/lang/Class;");
         var returnType = getReturnType("()[Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getComponentType", "()Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/Class;");
         var returnType = getReturnType("()Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getModifiers", "()I", function(){
-        var arrayOfArguments = getArguments("()I");
+        var arrayOfArguments = NativeFunctions.getArguments("()I");
         var returnType = getReturnType("()I");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getSigners", "()[Ljava/lang/Object;", function(){
-        var arrayOfArguments = getArguments("()[Ljava/lang/Object;");
+        var arrayOfArguments = NativeFunctions.getArguments("()[Ljava/lang/Object;");
         var returnType = getReturnType("()[Ljava/lang/Object;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "setSigners", "([Ljava/lang/Object;)V", function(){
-        var arrayOfArguments = getArguments("([Ljava/lang/Object;)V");
+        var arrayOfArguments = NativeFunctions.getArguments("([Ljava/lang/Object;)V");
         var returnType = getReturnType("([Ljava/lang/Object;)V");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getEnclosingMethod0", "()[Ljava/lang/Object;", function(){
-        var arrayOfArguments = getArguments("()[Ljava/lang/Object;");
+        var arrayOfArguments = NativeFunctions.getArguments("()[Ljava/lang/Object;");
         var returnType = getReturnType("()[Ljava/lang/Object;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getDeclaringClass", "()Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/Class;");
         var returnType = getReturnType("()Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getProtectionDomain0", "()Ljava/security/ProtectionDomain;", function(){
-        var arrayOfArguments = getArguments("()Ljava/security/ProtectionDomain;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/security/ProtectionDomain;");
         var returnType = getReturnType("()Ljava/security/ProtectionDomain;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "setProtectionDomain0", "(Ljava/security/ProtectionDomain;)V", function(){
-        var arrayOfArguments = getArguments("(Ljava/security/ProtectionDomain;)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/security/ProtectionDomain;)V");
         var returnType = getReturnType("(Ljava/security/ProtectionDomain;)V");
         }
     );*/
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getPrimitiveClass", "(Ljava/lang/String;)Ljava/lang/Class;", function(){
-            var arrayOfArguments = getArguments("(Ljava/lang/String;)Ljava/lang/Class;");
+            var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/String;)Ljava/lang/Class;");
             /*var string = arrayOfArguments[0];
             
             var charArray = MethodRun.callFromNative("java/lang/String", "toCharArray", "()[C", string);
@@ -524,191 +524,191 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
     );
 
     /*NativeFunctions.registerNativeFunction("java/lang/Class", "getGenericSignature", "()Ljava/lang/String;", function(){
-        var arrayOfArguments = getArguments("()Ljava/lang/String;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Ljava/lang/String;");
         var returnType = getReturnType("()Ljava/lang/String;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getRawAnnotations", "()[B", function(){
-        var arrayOfArguments = getArguments("()[B");
+        var arrayOfArguments = NativeFunctions.getArguments("()[B");
         var returnType = getReturnType("()[B");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getConstantPool", "()Lsun/reflect/ConstantPool;", function(){
-        var arrayOfArguments = getArguments("()Lsun/reflect/ConstantPool;");
+        var arrayOfArguments = NativeFunctions.getArguments("()Lsun/reflect/ConstantPool;");
         var returnType = getReturnType("()Lsun/reflect/ConstantPool;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getDeclaredFields0", "(Z)[Ljava/lang/reflect/Field;", function(){
-        var arrayOfArguments = getArguments("(Z)[Ljava/lang/reflect/Field;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Z)[Ljava/lang/reflect/Field;");
         var returnType = getReturnType("(Z)[Ljava/lang/reflect/Field;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getDeclaredMethods0", "(Z)[Ljava/lang/reflect/Method;", function(){
-        var arrayOfArguments = getArguments("(Z)[Ljava/lang/reflect/Method;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Z)[Ljava/lang/reflect/Method;");
         var returnType = getReturnType("(Z)[Ljava/lang/reflect/Method;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getDeclaredConstructors0", "(Z)[Ljava/lang/reflect/Constructor;", function(){
-        var arrayOfArguments = getArguments("(Z)[Ljava/lang/reflect/Constructor;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Z)[Ljava/lang/reflect/Constructor;");
         var returnType = getReturnType("(Z)[Ljava/lang/reflect/Constructor;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "getDeclaredClasses0", "()[Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("()[Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("()[Ljava/lang/Class;");
         var returnType = getReturnType("()[Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/Class", "desiredAssertionStatus0", "(Ljava/lang/Class;)Z", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/Class;)Z");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/Class;)Z");
         var returnType = getReturnType("(Ljava/lang/Class;)Z");
         }
     );
 
     // ---CLASSLOADER.CLASS---
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "registerNatives", "()V", function(){
-            var arrayOfArguments = getArguments("()V");
+            var arrayOfArguments = NativeFunctions.getArguments("()V");
             var returnType = getReturnType("()V");
             //TODO: registerNatives
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "defineClass0", "(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Z)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Z)Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Z)Ljava/lang/Class;");
         var returnType = getReturnType("(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Z)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "defineClass1", "(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;");
         var returnType = getReturnType("(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "defineClass2", "(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;");
         var returnType = getReturnType("(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;Z)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "resolveClass0", "(Ljava/lang/Class;)V", function(){
-        var arrayOfArguments = getArguments("(Ljava/lang/Class;)V");
+        var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/Class;)V");
         var returnType = getReturnType("(Ljava/lang/Class;)V");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "findBootstrapClass", "(Ljava/lang/String;)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/String;)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "findLoadedClass0", "(Ljava/lang/String;)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/String;)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("java/lang/ClassLoader", "retrieveDirectives", "()Ljava/lang/AssertionStatusDirectives;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("()Ljava/lang/AssertionStatusDirectives;");
         }
     );
 
     // ---CONSTANTPOOL.CLASS---
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getSize0", "(Ljava/lang/Object;)I", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;)I");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getClassAt0", "(Ljava/lang/Object;I)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getClassAtIfLoaded0", "(Ljava/lang/Object;I)Ljava/lang/Class;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)Ljava/lang/Class;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getMethodAt0", "(Ljava/lang/Object;I)Ljava/lang/reflect/Member;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)Ljava/lang/reflect/Member;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getMethodAtIfLoaded0", "(Ljava/lang/Object;I)Ljava/lang/reflect/Member;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)Ljava/lang/reflect/Member;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getFieldAt0", "(Ljava/lang/Object;I)Ljava/lang/reflect/Field;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)Ljava/lang/reflect/Field;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getFieldAtIfLoaded0", "(Ljava/lang/Object;I)Ljava/lang/reflect/Field;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)Ljava/lang/reflect/Field;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getMemberRefInfoAt0", "(Ljava/lang/Object;I)[Ljava/lang/String;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)[Ljava/lang/String;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getIntAt0", "(Ljava/lang/Object;I)I", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)I");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getLongAt0", "(Ljava/lang/Object;I)J", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)J");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getFloatAt0", "(Ljava/lang/Object;I)F", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)F");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getDoubleAt0", "(Ljava/lang/Object;I)D", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("(Ljava/lang/Object;I)D");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getStringAt0", "(Ljava/lang/Object;I)Ljava/lang/String;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("Ljava/lang/Object;I)Ljava/lang/String;");
         }
     );
 
     NativeFunctions.registerNativeFunction("sun/reflect/ConstantPool", "getUTF8At0", "(Ljava/lang/Object;I)Ljava/lang/String;", function(){
-        var arrayOfArguments = getArguments();
+        var arrayOfArguments = NativeFunctions.getArguments();
         var returnType = getReturnType("Ljava/lang/Object;I)Ljava/lang/String;");
         }
     );*/
 
     //r public static native java/lang/Float.floatToRawIntBits (F)I
     NativeFunctions.registerNativeFunction("java/lang/Float", "floatToRawIntBits", "(F)I", function(){
-            var arrayOfArguments = getArguments("(F)I");
+            var arrayOfArguments = NativeFunctions.getArguments("(F)I");
             var floatValue = arrayOfArguments[0].value;
             var s = floatValue < 0 ? 1 : 0;
             
@@ -735,18 +735,18 @@ define(['Util', 'MethodRun'], function(Util, MethodRun) {
             result <<= 23;
             result |= frac;
             
-            var retval = new Integer(result);
+            var retval = Primitives.getInteger(result);
             MethodRun.createReturn(retval);
         }
     );
 
     //public static native java/lang/Double.doubleToRawLongBits (D)J
     NativeFunctions.registerNativeFunction("java/lang/Double", "doubleToRawLongBits", "(D)J", function(){
-            var arrayOfArguments = getArguments("(D)J");
+            var arrayOfArguments = NativeFunctions.getArguments("(D)J");
             /*var doubleValue = arrayOfArguments[0].value;*/
             
             //TODO: Actually implement.
-            MethodRun.createReturn(new Long(0, 0));
+            MethodRun.createReturn(Primitives.getLong(0, 0));
         }
     );
 

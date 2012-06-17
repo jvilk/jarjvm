@@ -1,5 +1,5 @@
-define(['Util', 'ConstantPoolInfo', 'Primitive', 'Float', 'Char', 'Bool', 'Byte', 'Double', 'Integer', 'Long', 'Short'],
-    function (Util, ConstantPoolInfo, Primitive, Float, Char, Bool, Byte, Double, Integer, Long, Short) {
+define(['Util', 'ConstantPoolInfo', 'Primitives'],
+    function (Util, ConstantPoolInfo, Primitives) {
     /**
      * Object for the entire constant pool for a class.
      */
@@ -40,23 +40,23 @@ define(['Util', 'ConstantPoolInfo', 'Primitive', 'Float', 'Char', 'Bool', 'Byte'
                     this[i] = new ConstantStringInfo(string_index);
                     break;
                 case ConstantPoolInfo.tags.INTEGER:
-                    bytes = new Integer(javaClassReader.getIntField(4));
+                    bytes = Primitives.getInteger(javaClassReader.getIntField(4));
                     this[i] = new ConstantNumberInfo(tag, bytes);
                     break;
                 case ConstantPoolInfo.tags.FLOAT:
-                    bytes = new Float(javaClassReader.getFloatField(4));
+                    bytes = Primitives.getFloat(javaClassReader.getFloatField(4));
                     this[i] = new ConstantNumberInfo(tag, bytes);
                     break;
                 case ConstantPoolInfo.tags.LONG:
                     var high = javaClassReader.getUintField(4);
                     var low = javaClassReader.getUintField(4);
-                    var long_value = new Long(low, high);
+                    var long_value = Primitives.getLong(low, high);
                     this[i] = new ConstantBigNumberInfo(tag, long_value);
                     //8 byte constants take up two slots.
                     i++;
                     break;
                 case ConstantPoolInfo.tags.DOUBLE:
-                    var double_field = new Double(javaClassReader.getDoubleField(8));
+                    var double_field = Primitives.getDouble(javaClassReader.getDoubleField(8));
                     this[i] = new ConstantBigNumberInfo(tag, double_field);
                     //8 byte constants take up two slots.
                     i++;
