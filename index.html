@@ -1,40 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<script data-main="main.js" src="require.js"></script>
-		<LINK href="indexStyle.css" rel="stylesheet" type="text/css" />
-		
-		<title>JAR JVM</title>
-	</head>
-	<body>
-		<div class="main">
-			<div class="headerDiv">
-				JAR JVM 
-			</div>
-			<div id="upload" class="upload">
-				<div class="instructions">
-					<ul>
-						<li>Upload the Java class files needed to run your program.  The file selection box will let you select multiple files</li>
-						<li>If you need help with the console type 'help'</li>
-						<li>To execute your program type 'execute className'.  ClassName must contain a main function.  '.class' should not be included.</li>
-					</ul></div>
-				<form><input type="file" id="files" size="50" name="files[]" multiple /></form>
-			</div>
-			<div id="program" class="program">
-				<div id="consoleContainer" class="consoleContainer">
-					<div id="console" class="console" tabindex="1" onkeypress="JVM.getConsole().keyEvent(event, false)" onkeydown="JVM.getConsole().keyEvent(event, true)">
+  <head>
+    <script data-main="main.js" src="require.js"></script>
+    <LINK href="indexStyle.css" rel="stylesheet" type="text/css" />
+    
+    <title>JAR JVM</title>
+  </head>
+  <body>
+    <div class="main">
+      <div class="headerDiv">
+        JAR JVM 
+      </div>
+      <div id="upload" class="upload">
+        <div class="instructions">
+          <ul>
+            <li>Upload the Java class files needed to run your program.  The file selection box will let you select multiple files</li>
+            <li>If you need help with the console type 'help'</li>
+            <li>To execute your program type 'execute className'.  ClassName must contain a main function.  '.class' should not be included.</li>
+          </ul></div>
+        <form><input type="file" id="files" size="50" name="files[]" multiple /></form>
+      </div>
+      <div id="program" class="program">
+        <div id="consoleContainer" class="consoleContainer">
+          <div id="console" class="console" tabindex="1" onkeypress="JVM.getConsole().keyEvent(event, false)" onkeydown="JVM.getConsole().keyEvent(event, true)">
 
-					</div>
-				</div>
-				<div id="stackContainer" class="stackContainer">
-					<div id="stack" tabindex="2" class="stack">
-					</div>
-				</div>
-				<div style="clear:both">  </div>
-			</div>
-		<output id="list"></output>
-		<br />
-		<br />
-		</div>
-	</body>
+          </div>
+        </div>
+        <div id="stackContainer" class="stackContainer">
+          <div id="stack" tabindex="2" class="stack">
+          </div>
+        </div>
+        <div style="clear:both">  </div>
+      </div>
+    <output id="list"></output>
+    <br />
+    <br />
+    </div>
+  </body>
 </html>
