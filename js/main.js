@@ -1,6 +1,6 @@
 requirejs.config({
   //By default load any module IDs from the current directory
-  baseUrl: '.'
+  baseUrl: './js'
 });
 
 require(['VM', 'Enum', 'JavaClassReader', 'Class', 'Util'],
