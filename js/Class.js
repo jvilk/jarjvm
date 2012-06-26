@@ -1,4 +1,4 @@
-define(['ConstantPool', 'FieldInfo', 'MethodInfo', 'Util', 'MethodRun', 'JavaObject'],
+define(['ConstantPool/ConstantPool', 'FieldInfo', 'MethodInfo', 'Util', 'MethodRun', 'JavaObject'],
   function(ConstantPool, FieldInfo, MethodInfo, Util, MethodRun, JavaObject) {
     /* This is the representation of a Java class file */
 
