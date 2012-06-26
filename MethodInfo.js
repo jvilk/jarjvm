@@ -1,32 +1,26 @@
-define(['Attributes', 'Util', 'NativeFunctions'],
-  function (Attribute, Util, NativeFunctions) {
+define(['Util', 'NativeFunctions'],
+  function (Util, NativeFunctions) {
     /**
      * Represents a method.
      */
-    function MethodInfo(javaClassReader, classInfo) {
+    function MethodInfo(classInfo, accessFlags, name, descriptor, methodDescriptor, attributes) {
+      this.accessFlags = accessFlags;
+      this.name = name;
+      this.descriptor = descriptor;
+      this.methodDescriptor = methodDescriptor;
+      this.attributes = attributes;
       this.classInfo = classInfo;
-      this.accessFlags = javaClassReader.getUintField(2);
-      
-      this.nameIndex = javaClassReader.getUintField(2);
-      this.name = CONSTANTPOOL.getUTF8Info(this.nameIndex);
-      
-      this.descriptorIndex = javaClassReader.getUintField(2);
-      this.descriptor = CONSTANTPOOL.getUTF8Info(this.descriptorIndex);
-      this.methodDescriptor = Util.parseMethodDescriptor(this.descriptor);
-      
-      this.attributesCount = javaClassReader.getUintField(2);
-      this.attributes = Attribute.makeAttributes(javaClassReader, this.attributesCount);
-      
+
       //Will be lazily evaluated by functions.
       this.codeAttribute = undefined;
       this.deprecated = undefined;
       this.deprecationWarned = false;
       this.isInit = undefined;
-      
+
       //If it's native, get its code from NativeFunctions.
       if (this.hasFlag(MethodInfo.AccessFlags.NATIVE))
       {
-        this.execute = NativeFunctions.getNativeFunction(this.classInfo.thisClassName, this.name, this.descriptor);
+        this.execute = NativeFunctions.getNativeFunction(this.classInfo.thisClassName, name, descriptor);
         this.exception = function() {
           JVM.printError("JVM ERROR: The JVM tried to look for an exception handler in a native function.");
         };

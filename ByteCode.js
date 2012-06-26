@@ -1,5 +1,5 @@
-define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'ConstantPoolInfo'],
-  function(Util, Data, MethodRun, Primitives, JavaArray, ConstantPoolInfo) {
+define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
+  function(Util, Data, MethodRun, Primitives, JavaArray, Enum) {
     /**
      * Contains the code for every bytecode instruction.
      */
@@ -1419,46 +1419,46 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'ConstantPoolInf
       ByteCode.push(Primitives.getLong.fromInt(1));
     };
     ByteCode.instrs[ByteCode.codes.ldc] = function(constant) {
-      if(constant.tag == ConstantPoolInfo.tags.INTEGER) {
+      if(constant.getTag() == Enum.constantPoolTag.INTEGER) {
         ByteCode.push(constant.value);
       }
-      if(constant.tag == ConstantPoolInfo.tags.FLOAT) {
+      if(constant.getTag() == Enum.constantPoolTag.FLOAT) {
         ByteCode.push(constant.value);
       }
-      if(constant.tag == ConstantPoolInfo.tags.STRING) {
+      if(constant.getTag() == Enum.constantPoolTag.STRING) {
         //ConstantPoolInfo
         // /alert(constant.string);
         ByteCode.push(Util.getJavaString(constant.string));
       }
-      if(constant.tag == ConstantPoolInfo.tags.CLASS) {
+      if(constant.getTag() == Enum.constantPoolTag.CLASS) {
         ByteCode.push(Util.getJavaString(constant.name));
       }
     };
     ByteCode.instrs[ByteCode.codes.ldc_w] = function(constant) {
-      if(constant.tag == ConstantPoolInfo.tags.INTEGER) {
+      if(constant.getTag() == Enum.constantPoolTag.INTEGER) {
         ByteCode.push(constant.value);
         return;
       }
-      if(constant.tag == ConstantPoolInfo.tags.FLOAT) {
+      if(constant.getTag() == Enum.constantPoolTag.FLOAT) {
         ByteCode.push(constant.value);
         return;
       }
-      if(constant.tag == ConstantPoolInfo.tags.STRING) {
+      if(constant.getTag() == Enum.constantPoolTag.STRING) {
         //ConstantPoolInfo
         ByteCode.push(Util.getJavaString(constant.string));
         return;
       }
-      if(constant.tag == ConstantPoolInfo.tags.CLASS) {
+      if(constant.getTag() == Enum.constantPoolTag.CLASS) {
         ByteCode.push(Util.getJavaString(constant.name));
         return;
       }
     };
     ByteCode.instrs[ByteCode.codes.ldc2_w] = function(constant) {
-      if(constant.tag == ConstantPoolInfo.tags.LONG) {
+      if(constant.getTag() == Enum.constantPoolTag.LONG) {
         ByteCode.push(constant.value);
         return;
       }
-      if(constant.tag == ConstantPoolInfo.tags.DOUBLE) {
+      if(constant.getTag() == Enum.constantPoolTag.DOUBLE) {
         ByteCode.push(constant.value);
         return;
       }

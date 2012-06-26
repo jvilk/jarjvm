@@ -1,100 +1,37 @@
-define(['ConstantPool', 'FieldInfo', 'MethodInfo', 'Attributes', 'Util', 'MethodRun', 'JavaObject'],
-  function(ConstantPool, FieldInfo, MethodInfo, Attribute, Util, MethodRun, JavaObject) {
+define(['ConstantPool', 'FieldInfo', 'MethodInfo', 'Util', 'MethodRun', 'JavaObject'],
+  function(ConstantPool, FieldInfo, MethodInfo, Util, MethodRun, JavaObject) {
     /* This is the representation of a Java class file */
 
     /*
-     * javaClassReader: A JavaClassReader object attached to the raw data for this class.
+     * Instantiate the class with initial information so we can pass it to the ClassLoader.
+     * We will later fully instantiate it with other essential information (methods, firlds, etc).
      */
-    function Class(javaClassReader) {
-      /**
-       * PARSING ACTION
-       */
-      var i;
+    function Class(minorVersion, majorVersion, constantPool, accessFlags, thisClassName) {
+      this.minorVersion = minorVersion;
+      this.majorVersion = majorVersion;
+      this.constantPool = constantPool;
+      this.accessFlags = accessFlags;
+      this.thisClassName = thisClassName;
 
-      //u4 magic;
-      var magic = javaClassReader.getUintField(4);
-
-      //Why not?
-      if (magic != 0xCAFEBABE) {
-        JVM.printError("ERROR: Magic value 0xCAFEBABE not found! Instead: " + magic);
-      }
-
-      //u2 minor_version;
-      this.minorVersion = javaClassReader.getUintField(2);
-      //u2 major_version;
-      this.majorVersion = javaClassReader.getUintField(2);
-      
-      this.constantPool = new ConstantPool(javaClassReader);
-
-      //u2 access_flags;
-      this.accessFlags = javaClassReader.getUintField(2);
-      
-      //u2 this_class;
-      this.thisClassIndex = javaClassReader.getUintField(2);
-      this.thisClassName = CONSTANTPOOL.getClassInfo(this.thisClassIndex);
-      
-      //Register myself. This is very important, or else we could get into infinite loading loops.
-      //Trying a Hack to load system
-      if (this.thisClassName == "System"){
-        JVM.registerClass("java/lang/System", this);
-      }else if (this.thisClassName == "PrintStream"){
-        JVM.registerClass("java/io/PrintStream", this);
-      }else{
-        JVM.registerClass(this.thisClassName, this);
-      }
-      
-      
-      //u2 super_class;
-      this.superClassIndex = javaClassReader.getUintField(2);
-      this.superClassName = CONSTANTPOOL.getClassInfo(this.superClassIndex);
-      //Lazily evaluate.
-      this.superClass = undefined;
-
-      //u2 interfaces_count;
-      this.interfacesCount = javaClassReader.getUintField(2);
-      this.interfaces = [];
-      //u2 interfaces[interfaces_count];
-      for(i = 0; i < this.interfacesCount; i++) {
-        this.interfaces[i] = [];
-        this.interfaces[i].interfaceIndex = javaClassReader.getUintField(2);
-        this.interfaces[i].className = CONSTANTPOOL.getClassInfo(this.interfaces[i].interfaceIndex);
-      }
-
-      //u2 fields_count;
-      this.fieldsCount = javaClassReader.getUintField(2);
-      this.fields = [];
-      //field_info fields[fields_count];
-      for(i = 0; i < this.fieldsCount; i++) {
-        this.fields[i] = new FieldInfo(javaClassReader, this);
-      }
-
-      //u2 methods_count;
-      this.methodsCount = javaClassReader.getUintField(2);
-      this.methods = [];
-      //method_info methods[methods_count];
-      for(i = 0; i < this.methodsCount; i++) {
-        this.methods[i] = new MethodInfo(javaClassReader, this);
-      }
-
-      //u2 attributes_count;
-      this.attributesCount = javaClassReader.getUintField(2);
-      //attribute_info attributes[attributes_count];
-      this.attributes = Attribute.makeAttributes(javaClassReader, this.attributesCount);
-      
       //Cache deprecation search.
       this.deprecated = undefined;
       this.deprecationWarn = false;
-      
-      //Switched to 'true' when initialized.
+
+      //Set to 'true' when the class is initialized (after all initialization functions are called).
       this.isInitialized = false;
-      
-      //Finish initializing the fields. We need to do this here because it may
-      //trigger other classes to load, which would change CONSTANTPOOL.
-      for (i = 0; i < this.fields.length; i++)
-      {
-        this.fields[i]._initializeDefaultValue();
-      }
     }
+
+    /**
+     * Finish instantiating the class with essential information.
+     */
+    Class.prototype.finishInstantiation = function(superClassName, interfaces, fields, methods, attributes) {
+      this.superClass = undefined;
+      this.superClassName = superClassName;
+      this.interfaces = interfaces;
+      this.fields = fields;
+      this.methods = methods;
+      this.attributes = attributes;
+    };
 
     /**
      * Get the super class's object, if exists.
@@ -230,7 +167,7 @@ define(['ConstantPool', 'FieldInfo', 'MethodInfo', 'Attributes', 'Util', 'Method
       //This Class
       output.push(this.thisClassName, " ");
       //Super Class
-      if (this.superClassIndex > 0)
+      if (this.superClassName !== undefined)
       {
         output.push("extends ", this.superClassName, " ");
       }
@@ -238,12 +175,10 @@ define(['ConstantPool', 'FieldInfo', 'MethodInfo', 'Attributes', 'Util', 'Method
       if (this.interfacesCount > 0) output.push("implements ");
       for (i = 0; i < this.interfacesCount; i++)
       {
-        output.push(this.interfaces[i].className, " ");
+        output.push(this.interfaces[i], " ");
       }
 
       output.push("\n\n");
-      
-      //output.push(this.constantPool.toString(), "\n");
       
       output.push("Fields:\n");
       //Fields
@@ -287,7 +222,7 @@ define(['ConstantPool', 'FieldInfo', 'MethodInfo', 'Attributes', 'Util', 'Method
         
       for (var i in this.interfaces)
       {
-        var interfaceInfo = JVM.getClass(this.interfaces[i].className);
+        var interfaceInfo = JVM.getClass(this.interfaces[i]);
         if (interfaceInfo.isA(className))
           return true;
       }
@@ -301,7 +236,7 @@ define(['ConstantPool', 'FieldInfo', 'MethodInfo', 'Attributes', 'Util', 'Method
     Class.prototype.implementsInterface = function(interfaceName) {
       for (var i in this.interfaces)
       {
-        var interfaceInfo = JVM.getClass(this.interfaces[i].className);
+        var interfaceInfo = JVM.getClass(this.interfaces[i]);
         if (interfaceInfo.isA(interfaceName))
           return true;
       }

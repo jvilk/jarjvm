@@ -1,5 +1,5 @@
-define(['Util', 'MethodRun', 'Primitives'],
-  function(Util, MethodRun, Primitives) {
+define(['Util', 'MethodRun', 'Primitives', 'ByteCode'],
+  function(Util, MethodRun, Primitives, ByteCode) {
     NativeFunctions = {};
 
     /**

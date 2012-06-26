@@ -58,7 +58,7 @@ define(['Util', 'JavaClassReader', 'Class'],
       //Load the class.
       var javaClassReader = new JavaClassReader(contentWrapped);
       //The Class constructor will call 'registerClass' itself.
-      var aClass = new Class(javaClassReader);
+      var aClass = javaClassReader.parseClass();
       
       return aClass;
     };

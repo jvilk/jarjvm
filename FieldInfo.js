@@ -1,23 +1,20 @@
-define(['Primitives', 'Util', 'Attributes', 'FieldDescriptor', 'ConstantPoolInfo'],
-  function(Primitives, Util, Attribute, FieldDescriptor, ConstantPoolInfo) {
+define(['Primitives', 'Util', 'FieldDescriptor', 'Enum'],
+  function(Primitives, Util, FieldDescriptor, Enum) {
     /**
      * FieldInfo object
      */
 
-    function FieldInfo(javaClassReader, classInfo) {
-      /**
-       * INITIALIZATION
-       */
+    function FieldInfo(classInfo, accessFlags, name, descriptor, attributesCount, fieldDescriptor, attributes, constantValueAttribute, isConstant) {
       this.classInfo = classInfo;
-      this.accessFlags = javaClassReader.getUintField(2);
-      this.nameIndex = javaClassReader.getUintField(2);
-      this.name = CONSTANTPOOL.getUTF8Info(this.nameIndex);
-      this.descriptorIndex = javaClassReader.getUintField(2);
-      this.descriptor = CONSTANTPOOL.getUTF8Info(this.descriptorIndex);
-      this.attributesCount = javaClassReader.getUintField(2);
-      this.fieldDescriptor = Util.parseFieldDescriptor(this.descriptor);
-      this.attributes = Attribute.makeAttributes(javaClassReader, this.attributesCount);
-      
+      this.accessFlags = accessFlags;
+      this.name = name;
+      this.descriptor = descriptor;
+      this.attributesCount = attributesCount;
+      this.fieldDescriptor = fieldDescriptor;
+      this.attributes = attributes;
+      this.constantValueAttribute = constantValueAttribute;
+      this.isConstant = isConstant;
+
       //Stores either the current value of a static field, or the default value of
       //a static final / regular field.
       this.value = undefined;
@@ -25,21 +22,23 @@ define(['Primitives', 'Util', 'Attributes', 'FieldDescriptor', 'ConstantPoolInfo
       //A field is constant if it is static, final, AND has a ConstantValue attribute.
       this.isConstant = false;
       this.constantValueAttribute = undefined;
-      
-      //Check if the attribute is constant.
-      for (var i=0; i < this.attributes.length; i++)
-      {
-        if (this.attributes[i].attributeName == "ConstantValue")
-        {
-          this.constantValueAttribute = this.attributes[i].constantValue;
-          this.isConstant = this.hasFlag(FieldInfo.AccessFlags.STATIC & FieldInfo.AccessFlags.FINAL);
-          break;
-        }
-      }
-      
+
       //Populated during deprecation check.
       this.deprecated = undefined;
       this.deprecationWarned = false;
+
+      //Check if the attribute is constant.
+      for (var i=0; i < attributes.length; i++)
+      {
+        if (attributes[i].attributeName == "ConstantValue")
+        {
+          constantValueAttribute = this.attributes[i].constantValue;
+          isConstant = this.hasFlag(FieldInfo.AccessFlags.STATIC & FieldInfo.AccessFlags.FINAL);
+          break;
+        }
+      }
+
+      this._initializeDefaultValue();
     }
 
     /**
@@ -131,9 +130,8 @@ define(['Primitives', 'Util', 'Attributes', 'FieldDescriptor', 'ConstantPoolInfo
       if (this.constantValueAttribute !== undefined)
       {
         var constVal = this.constantValueAttribute;
-        if (constVal.tag == ConstantPoolInfo.tags.STRING)
+        if (constVal.getTag() == Enum.constantPoolTag.STRING)
         {
-          //JVM.debugPrint("Initializing string field...");
           this.value = Util.getJavaString(constVal.string);
         }
         else

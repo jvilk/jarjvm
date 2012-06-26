@@ -25,12 +25,6 @@ require(['VM', 'Enum', 'JavaClassReader', 'Class', 'Util'],
     JVM = new VM("console", "Welcome the the JAR Javascript JVM!\nIf you need help with this console type 'help' and press Enter\n--------------------------------------------------------------------------------\n");
     JVM.initialize();
 
-    // !!!HACK!!!
-    // Current Constant Pool
-    // ONLY USED DURING CONSTANT POOL INITIALIZATION due to laziness
-    // Should refactor out.
-    CONSTANTPOOL = undefined;
-
     function handleFileSelect(evt) {
       //Initialize system.
       JVM.println("Loading User Classes...\n");
@@ -46,7 +40,7 @@ require(['VM', 'Enum', 'JavaClassReader', 'Class', 'Util'],
             JVM.println("File Read In");
             var bytes = evt.target.result;
             var javaClassReader = new JavaClassReader(bytes);
-            var aClass = new Class(javaClassReader);
+            var aClass = javaClassReader.parseClass();
             Util.assert(javaClassReader.index == javaClassReader.data.length);
           }
         };
