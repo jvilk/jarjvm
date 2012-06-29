@@ -1,5 +1,5 @@
-define(['Util', 'JavaClassReader', 'Class'],
-  function(Util, JavaClassReader, Class) {
+define(['Util', 'JavaClassReader', 'ClassFactory'],
+  function(Util, JavaClassReader, ClassFactory) {
     function ClassLoader() {
       this.classes = [];
     }
@@ -58,7 +58,7 @@ define(['Util', 'JavaClassReader', 'Class'],
       //Load the class.
       var javaClassReader = new JavaClassReader(contentWrapped);
       //The Class constructor will call 'registerClass' itself.
-      var aClass = javaClassReader.parseClass();
+      var aClass = ClassFactory.parseClass(javaClassReader);
       
       return aClass;
     };

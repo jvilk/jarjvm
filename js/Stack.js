@@ -17,8 +17,8 @@ define(['Frame', 'Util'],
       this.currentFrame.push(data);
     };
 
-    Stack.prototype.getCurrentMethodInfo = function() {
-      return this.currentFrame.getMethodInfo();
+    Stack.prototype.getCurrentMethod = function() {
+      return this.currentFrame.getMethod();
     };
 
     Stack.prototype.pushFrame = function(methodInfo) {

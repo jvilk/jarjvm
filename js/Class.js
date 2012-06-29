@@ -1,5 +1,5 @@
-define(['ConstantPool/ConstantPool', 'FieldInfo', 'MethodInfo', 'Util', 'MethodRun', 'JavaObject'],
-  function(ConstantPool, FieldInfo, MethodInfo, Util, MethodRun, JavaObject) {
+define(['ConstantPool/ConstantPool', 'FieldInfo', 'Method', 'Util', 'MethodRun', 'JavaObject'],
+  function(ConstantPool, FieldInfo, Method, Util, MethodRun, JavaObject) {
     /* This is the representation of a Java class file */
 
     /*
@@ -277,7 +277,7 @@ define(['ConstantPool/ConstantPool', 'FieldInfo', 'MethodInfo', 'Util', 'MethodR
     };
 
     /**
-     * Get a MethodInfo object by its name and descriptor.
+     * Get a Method object by its name and descriptor.
      *
      * Called recursively on its parent classes.
      *

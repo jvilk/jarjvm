@@ -68,7 +68,7 @@ define(['Util'],
       return this.locals[index];
     };
 
-    Frame.prototype.getMethodInfo = function() {
+    Frame.prototype.getMethod = function() {
       return this.methodInfo;
     };
 

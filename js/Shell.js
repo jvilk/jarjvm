@@ -332,7 +332,7 @@ define(['Util', 'JavaArray', 'Enum', 'MethodRun'],
           {
             shell.stderr("JVM Exception: " + err + "\n");
 
-            shell.stdout(JVM.getExecutingThread().getCurrentMethodInfo().toStringWithCode(JVM.getExecutingThread().getPC()) + "\n");
+            shell.stdout(JVM.getExecutingThread().getCurrentMethod().toStringWithCode(JVM.getExecutingThread().getPC()) + "\n");
 
             //Empty the stack. We are done executing.
             JVM.getExecutingThread().clearStack();

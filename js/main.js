@@ -3,8 +3,8 @@ requirejs.config({
   baseUrl: './js'
 });
 
-require(['VM', 'Enum', 'JavaClassReader', 'Class', 'Util'],
-  function (VM, Enum, JavaClassReader, Class, Util) {
+require(['VM', 'Enum', 'JavaClassReader', 'ClassFactory', 'Util'],
+  function (VM, Enum, JavaClassReader, ClassFactory, Util) {
     /**
      * Prevent Chrome from going back a page when backspace is hit.
      */
@@ -40,8 +40,8 @@ require(['VM', 'Enum', 'JavaClassReader', 'Class', 'Util'],
             JVM.println("File Read In");
             var bytes = evt.target.result;
             var javaClassReader = new JavaClassReader(bytes);
-            var aClass = javaClassReader.parseClass();
-            Util.assert(javaClassReader.index == javaClassReader.data.length);
+            var aClass = ClassFactory.parseClass(javaClassReader);
+            Util.assert(javaClassReader.getOffset() == javaClassReader.data.length);
           }
         };
 

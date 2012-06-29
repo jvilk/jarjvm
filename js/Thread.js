@@ -43,8 +43,8 @@ define(['Stack'],
       this.stack.pushFrame(frame);
     };
 
-    Thread.prototype.getCurrentMethodInfo = function() {
-      return this.stack.getCurrentMethodInfo();
+    Thread.prototype.getCurrentMethod = function() {
+      return this.stack.getCurrentMethod();
     };
 
     Thread.prototype.setLocal = function(i, value) {

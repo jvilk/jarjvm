@@ -3,7 +3,7 @@ define(['Util', 'NativeFunctions'],
     /**
      * Represents a method.
      */
-    function MethodInfo(classInfo, accessFlags, name, descriptor, methodDescriptor, attributes) {
+    function Method(classInfo, accessFlags, name, descriptor, methodDescriptor, attributes) {
       this.accessFlags = accessFlags;
       this.name = name;
       this.descriptor = descriptor;
@@ -18,7 +18,7 @@ define(['Util', 'NativeFunctions'],
       this.isInit = undefined;
 
       //If it's native, get its code from NativeFunctions.
-      if (this.hasFlag(MethodInfo.AccessFlags.NATIVE))
+      if (this.hasFlag(Method.AccessFlags.NATIVE))
       {
         this.execute = NativeFunctions.getNativeFunction(this.classInfo.thisClassName, name, descriptor);
         this.exception = function() {
@@ -28,23 +28,23 @@ define(['Util', 'NativeFunctions'],
     }
 
     /**
-     * Checks if the MethodInfo has a specific access flag.
+     * Checks if the Method has a specific access flag.
      */
-    MethodInfo.prototype.hasFlag = function(mask) {
+    Method.prototype.hasFlag = function(mask) {
       return (this.accessFlags & mask) == mask;
     };
 
     /**
-     * Checks if this MethodInfo object is <clinit>.
+     * Checks if this Method object is <clinit>.
      */
-    MethodInfo.prototype.isClinit = function() {
+    Method.prototype.isClinit = function() {
       return this.name == "<clinit>";
     };
 
     /**
-     * Checks if this MethodInfo object is an object constructor.
+     * Checks if this Method object is an object constructor.
      */
-    MethodInfo.prototype.isConstructor = function() {
+    Method.prototype.isConstructor = function() {
       if (this.isInit !== undefined)
         return this.isInit;
       
@@ -57,7 +57,7 @@ define(['Util', 'NativeFunctions'],
      * If errorPC is specified, then we also add an arrow to the output at that
      * line to point it out as the cause of our grief.
      */
-    MethodInfo.prototype.toStringWithCode = function(errorPC) {
+    Method.prototype.toStringWithCode = function(errorPC) {
       //Get the signature.
       var output = [];
       output.push(this.toString());
@@ -79,14 +79,14 @@ define(['Util', 'NativeFunctions'],
      * Get a string representation of this method (namely, its signature).
      * For the full code, try toStringWithCode
      */
-    MethodInfo.prototype.toString = function() {
+    Method.prototype.toString = function() {
       var output = [];
       
-      for (var x in MethodInfo.AccessFlags)
+      for (var x in Method.AccessFlags)
       {
-        if (this.hasFlag(MethodInfo.AccessFlags[x]))
+        if (this.hasFlag(Method.AccessFlags[x]))
         {
-          output.push(MethodInfo.AccessFlagStrings[x], " ");
+          output.push(Method.AccessFlagStrings[x], " ");
         }
       }
       output.push(this.classInfo.thisClassName, ".", this.name, " ", this.descriptor);
@@ -98,7 +98,7 @@ define(['Util', 'NativeFunctions'],
      * Lazily finds the code attribute. Returns undefined if one does not
      * exist.
      */
-    MethodInfo.prototype.getCodeAttribute = function() {
+    Method.prototype.getCodeAttribute = function() {
       if (this.codeAttribute !== undefined) return this.codeAttribute;
       
       for (var i in this.attributes)
@@ -117,7 +117,7 @@ define(['Util', 'NativeFunctions'],
      * Returns true if method is deprecated.
      * False otherwise.
      */
-    MethodInfo.prototype.isDeprecated = function() {
+    Method.prototype.isDeprecated = function() {
       if (this.deprecated !== undefined)
         return this.deprecated;
       
@@ -136,7 +136,7 @@ define(['Util', 'NativeFunctions'],
     /**
      * Executes the method normally.
      */
-    MethodInfo.prototype.execute = function() {
+    Method.prototype.execute = function() {
       //Begin static initialization of this method's class, unless this
       //is the static initializer.
       if (!this.isClinit()) {
@@ -166,7 +166,7 @@ define(['Util', 'NativeFunctions'],
      * Searches for an exception that needs to be handled, and takes the
      * necessary actions required to handle it.
      */
-    MethodInfo.prototype.exception = function() {
+    Method.prototype.exception = function() {
       var codeAttribute = this.getCodeAttribute();
       Util.assert(codeAttribute !== undefined);
       
@@ -192,7 +192,7 @@ define(['Util', 'NativeFunctions'],
       }
     };
 
-    MethodInfo.AccessFlagStrings = {
+    Method.AccessFlagStrings = {
       PUBLIC : "public",
       PRIVATE : "private",
       PROTECTED : "protected",
@@ -204,7 +204,7 @@ define(['Util', 'NativeFunctions'],
       STRICT : "strict"
     };
 
-    MethodInfo.AccessFlags = {
+    Method.AccessFlags = {
       PUBLIC : 0x0001,
       PRIVATE : 0x0002,
       PROTECTED : 0x0004,
@@ -216,6 +216,6 @@ define(['Util', 'NativeFunctions'],
       STRICT : 0x0800
     };
 
-    return MethodInfo;
+    return Method;
   }
 );

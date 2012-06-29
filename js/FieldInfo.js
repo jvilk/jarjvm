@@ -4,7 +4,7 @@ define(['Primitives', 'Util', 'FieldDescriptor', 'Enum'],
      * FieldInfo object
      */
 
-    function FieldInfo(classInfo, accessFlags, name, descriptor, attributesCount, fieldDescriptor, attributes, constantValueAttribute, isConstant) {
+    function FieldInfo(classInfo, accessFlags, name, descriptor, attributesCount, fieldDescriptor, attributes) {
       this.classInfo = classInfo;
       this.accessFlags = accessFlags;
       this.name = name;
@@ -12,8 +12,6 @@ define(['Primitives', 'Util', 'FieldDescriptor', 'Enum'],
       this.attributesCount = attributesCount;
       this.fieldDescriptor = fieldDescriptor;
       this.attributes = attributes;
-      this.constantValueAttribute = constantValueAttribute;
-      this.isConstant = isConstant;
 
       //Stores either the current value of a static field, or the default value of
       //a static final / regular field.

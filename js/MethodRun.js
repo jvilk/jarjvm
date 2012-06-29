@@ -30,7 +30,7 @@ define(
       else
         this.exception = undefined;
       
-      //JVM.debugPrint("Creating a methodrun " + this.type + " for " + JVM.getExecutingThread().getCurrentMethodInfo() + "  with PC " + this.pc);
+      //JVM.debugPrint("Creating a methodrun " + this.type + " for " + JVM.getExecutingThread().getCurrentMethod() + "  with PC " + this.pc);
     }
 
     /**
@@ -39,12 +39,12 @@ define(
      */
     MethodRun.prototype.execute = function() {
       JVM.getExecutingThread().setPC(this.pc);
-      currentMethodInfo = JVM.getExecutingThread().getCurrentMethodInfo();
-      JVM.debugPrint("Executing a methodRun for " + currentMethodInfo + " with PC " + this.pc);
+      currentMethod = JVM.getExecutingThread().getCurrentMethod();
+      JVM.debugPrint("Executing a methodRun for " + currentMethod + " with PC " + this.pc);
       if (this.type == MethodRun.type.EXCEPTION)
-        currentMethodInfo.exception(this.exception);
+        currentMethod.exception(this.exception);
       else
-        currentMethodInfo.execute();
+        currentMethod.execute();
     };
 
     /**
