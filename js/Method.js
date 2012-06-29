@@ -31,14 +31,14 @@ define(['Util', 'NativeFunctions'],
      * Checks if the Method has a specific access flag.
      */
     Method.prototype.hasFlag = function(mask) {
-      return (this.accessFlags & mask) == mask;
+      return (this.accessFlags & mask) === mask;
     };
 
     /**
      * Checks if this Method object is <clinit>.
      */
     Method.prototype.isClinit = function() {
-      return this.name == "<clinit>";
+      return this.name === "<clinit>";
     };
 
     /**
@@ -48,7 +48,7 @@ define(['Util', 'NativeFunctions'],
       if (this.isInit !== undefined)
         return this.isInit;
       
-      this.isInit = this.name == "<init>";
+      this.isInit = this.name === "<init>";
       return this.isInit;
     };
 
@@ -66,7 +66,7 @@ define(['Util', 'NativeFunctions'],
       var i;
       for (i= 0; i < numAttributes; i++) {
         //We only care about the one Code attribute.
-        if (this.attributes[i].attributeName == "Code") {
+        if (this.attributes[i].attributeName === "Code") {
           output.push("\n", this.attributes[i].toString(errorPC));
           break;
         }
@@ -103,7 +103,7 @@ define(['Util', 'NativeFunctions'],
       
       for (var i in this.attributes)
       {
-        if (this.attributes[i].attributeName == "Code")
+        if (this.attributes[i].attributeName === "Code")
         {
           this.codeAttribute = this.attributes[i];
           return this.codeAttribute;
@@ -123,7 +123,7 @@ define(['Util', 'NativeFunctions'],
       
       for (var attribute in this.attributes)
       {
-        if (this.attributes[attribute].attributeName == "Deprecated")
+        if (this.attributes[attribute].attributeName === "Deprecated")
         {
           this.deprecated = true;
           return true;

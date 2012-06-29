@@ -28,7 +28,7 @@ define(['Primitives', 'Util', 'FieldDescriptor', 'Enum'],
       //Check if the attribute is constant.
       for (var i=0; i < attributes.length; i++)
       {
-        if (attributes[i].attributeName == "ConstantValue")
+        if (attributes[i].attributeName === "ConstantValue")
         {
           constantValueAttribute = this.attributes[i].constantValue;
           isConstant = this.hasFlag(FieldInfo.AccessFlags.STATIC & FieldInfo.AccessFlags.FINAL);
@@ -128,7 +128,7 @@ define(['Primitives', 'Util', 'FieldDescriptor', 'Enum'],
       if (this.constantValueAttribute !== undefined)
       {
         var constVal = this.constantValueAttribute;
-        if (constVal.getTag() == Enum.constantPoolTag.STRING)
+        if (constVal.getTag() === Enum.constantPoolTag.STRING)
         {
           this.value = Util.getJavaString(constVal.string);
         }
@@ -143,7 +143,7 @@ define(['Primitives', 'Util', 'FieldDescriptor', 'Enum'],
      * Checks if the field has a specific access flag.
      */
     FieldInfo.prototype.hasFlag = function(mask) {
-      return (this.accessFlags & mask) == mask;
+      return (this.accessFlags & mask) === mask;
     };
 
     /**
@@ -183,7 +183,7 @@ define(['Primitives', 'Util', 'FieldDescriptor', 'Enum'],
         
       for (var attribute in this.attributes)
       {
-        if (this.attributes[attribute].attributeName == "Deprecated")
+        if (this.attributes[attribute].attributeName === "Deprecated")
         {
           this.deprecated = true;
           return true;

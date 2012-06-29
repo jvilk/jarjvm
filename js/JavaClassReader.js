@@ -55,7 +55,7 @@ define(['Util', 'Deflate'],
      * Returns a float.
      */
     JavaClassReader.prototype.getFloatField = function(fieldLength) {
-      Util.assert(fieldLength == 4);
+      Util.assert(fieldLength === 4);
       var rawBits = this.getUintField(fieldLength);
       var s = ((rawBits >> 31) === 0) ? 1 : -1;
 
@@ -75,7 +75,7 @@ define(['Util', 'Deflate'],
      * Returns a double.
      */
     JavaClassReader.prototype.getDoubleField = function(fieldLength) {
-      Util.assert(fieldLength == 8);
+      Util.assert(fieldLength === 8);
       
       var bits_1 = this.getUintField(2);
       

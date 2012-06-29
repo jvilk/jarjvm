@@ -544,7 +544,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
       } else {
         if(number1 > number2) {
           result = 1;
-        } else if(number1 == number2) {
+        } else if(number1 === number2) {
           result = 0;
         } else {
           result = -1;
@@ -823,7 +823,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
       var secondValue = ByteCode.pop();
 
       //Check for which form needs to be done
-      if(secondValue.type == Data.type.LONG || secondValue.type == Data.type.DOUBLE) {
+      if(secondValue.type === Data.type.LONG || secondValue.type === Data.type.DOUBLE) {
         ByteCode.push(firstValue);
         ByteCode.push(secondValue);
         ByteCode.push(firstValue);
@@ -838,7 +838,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
     ByteCode.instrs[ByteCode.codes.dup2] = function() {
       var firstValue = ByteCode.pop();
 
-      if(firstValue.type == StackElement.types.long_ || firstValue.type == StackElement.types.double_) {
+      if(firstValue.type === StackElement.types.long_ || firstValue.type === StackElement.types.double_) {
         ByteCode.push(firstValue);
         ByteCode.push(firstValue);
       } else {
@@ -853,7 +853,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
       var firstValue = ByteCode.pop();
       var secondValue;
 
-      if(firstValue.type == StackElement.types.long_ || firstValue.type == StackElement.types.double_) {
+      if(firstValue.type === StackElement.types.long_ || firstValue.type === StackElement.types.double_) {
         secondValue = ByteCode.pop();
         ByteCode.push(firstValue);
         ByteCode.push(secondValue);
@@ -872,8 +872,8 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
       var firstValue = ByteCode.pop();
       var secondValue = ByteCode.pop();
       var thirdValue;
-      if(firstValue.type == StackElement.types.long_ || firstValue.type == StackElement.types.double_) {
-        if(secondValue.type == StackElement.types.long_ || secondValue.type == StackElement.types.double_) {
+      if(firstValue.type === StackElement.types.long_ || firstValue.type === StackElement.types.double_) {
+        if(secondValue.type === StackElement.types.long_ || secondValue.type === StackElement.types.double_) {
           //Form 4
           ByteCode.push(firstValue);
           ByteCode.push(secondValue);
@@ -888,7 +888,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
         }
       } else {
         thirdValue = ByteCode.pop();
-        if(thirdValue.type == StackElement.types.long_ || thirdValue.type == StackElement.types.double_) {
+        if(thirdValue.type === StackElement.types.long_ || thirdValue.type === StackElement.types.double_) {
           //Form 3
           ByteCode.push(secondValue);
           ByteCode.push(firstValue);
@@ -1076,7 +1076,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value == value2.value) {
+      if(value1.value === value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1094,7 +1094,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value == value2.value) {
+      if(value1.value === value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1419,46 +1419,46 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
       ByteCode.push(Primitives.getLong.fromInt(1));
     };
     ByteCode.instrs[ByteCode.codes.ldc] = function(constant) {
-      if(constant.getTag() == Enum.constantPoolTag.INTEGER) {
+      if(constant.getTag() === Enum.constantPoolTag.INTEGER) {
         ByteCode.push(constant.value);
       }
-      if(constant.getTag() == Enum.constantPoolTag.FLOAT) {
+      if(constant.getTag() === Enum.constantPoolTag.FLOAT) {
         ByteCode.push(constant.value);
       }
-      if(constant.getTag() == Enum.constantPoolTag.STRING) {
+      if(constant.getTag() === Enum.constantPoolTag.STRING) {
         //ConstantPoolInfo
         // /alert(constant.string);
         ByteCode.push(Util.getJavaString(constant.string));
       }
-      if(constant.getTag() == Enum.constantPoolTag.CLASS) {
+      if(constant.getTag() === Enum.constantPoolTag.CLASS) {
         ByteCode.push(Util.getJavaString(constant.name));
       }
     };
     ByteCode.instrs[ByteCode.codes.ldc_w] = function(constant) {
-      if(constant.getTag() == Enum.constantPoolTag.INTEGER) {
+      if(constant.getTag() === Enum.constantPoolTag.INTEGER) {
         ByteCode.push(constant.value);
         return;
       }
-      if(constant.getTag() == Enum.constantPoolTag.FLOAT) {
+      if(constant.getTag() === Enum.constantPoolTag.FLOAT) {
         ByteCode.push(constant.value);
         return;
       }
-      if(constant.getTag() == Enum.constantPoolTag.STRING) {
+      if(constant.getTag() === Enum.constantPoolTag.STRING) {
         //ConstantPoolInfo
         ByteCode.push(Util.getJavaString(constant.string));
         return;
       }
-      if(constant.getTag() == Enum.constantPoolTag.CLASS) {
+      if(constant.getTag() === Enum.constantPoolTag.CLASS) {
         ByteCode.push(Util.getJavaString(constant.name));
         return;
       }
     };
     ByteCode.instrs[ByteCode.codes.ldc2_w] = function(constant) {
-      if(constant.getTag() == Enum.constantPoolTag.LONG) {
+      if(constant.getTag() === Enum.constantPoolTag.LONG) {
         ByteCode.push(constant.value);
         return;
       }
-      if(constant.getTag() == Enum.constantPoolTag.DOUBLE) {
+      if(constant.getTag() === Enum.constantPoolTag.DOUBLE) {
         ByteCode.push(constant.value);
         return;
       }
@@ -1496,7 +1496,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
         if(matches[i].match < key) {
           break;
         }
-        if(matches[i].match == key) {
+        if(matches[i].match === key) {
           offset = matches[i].offset;
           break;
         }
@@ -1643,7 +1643,7 @@ define(['Util', 'Data', 'MethodRun', 'Primitives', 'JavaArray', 'Enum'],
     };
     ByteCode.instrs[ByteCode.codes.wide] = function(opcode, index, constant) {
       //If form 2
-      if(opcode == ByteCode.codes.iinc) {
+      if(opcode === ByteCode.codes.iinc) {
         ByteCode.instrs[opcode](index, constant);
         return;
       } else {

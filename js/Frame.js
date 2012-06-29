@@ -19,7 +19,7 @@ define(['Util'],
       if (x !== null && x !== undefined)
       {
         Util.pushElement(x.toString());
-        if (x.dataType == Data.type.DOUBLE || x.dataType == Data.type.LONG)
+        if (x.dataType === Data.type.DOUBLE || x.dataType === Data.type.LONG)
         {
           Util.pushElement(x.toString());
         }
@@ -32,7 +32,7 @@ define(['Util'],
       
       this.stack.push(x);
       //JavaScript null = Java null. We don't want to check properties on a null value.
-      if (x !== null && x !== undefined && (x.dataType == Data.type.DOUBLE || x.dataType == Data.type.LONG))
+      if (x !== null && x !== undefined && (x.dataType === Data.type.DOUBLE || x.dataType === Data.type.LONG))
       {
         this.stack.push(x);
       }
@@ -59,7 +59,7 @@ define(['Util'],
     Frame.prototype.setLocal = function(index, value) {
       this.locals[index] = value;
       //JavaScript null = Java null. We don't want to check properties on a null value.
-      if (value !== null && value !== undefined && (value.dataType == Data.type.DOUBLE || value.dataType == Data.type.LONG)) {
+      if (value !== null && value !== undefined && (value.dataType === Data.type.DOUBLE || value.dataType === Data.type.LONG)) {
         this.locals[index+1] = value;
       }
     };

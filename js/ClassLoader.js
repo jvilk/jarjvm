@@ -47,7 +47,7 @@ define(['Util', 'JavaClassReader', 'ClassFactory'],
       request.send(null);
 
       //Ensure success.
-      Util.assert(request.status == 200);
+      Util.assert(request.status === 200);
 
       //Wrap the data so it's interpreted correctly.
       var contentWrapped = {};

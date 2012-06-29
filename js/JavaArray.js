@@ -14,7 +14,7 @@ define(
      */
     JavaArray.prototype.isA = function(classDescriptor) {
       //Well, I am an object...
-      if (classDescriptor == "java/lang/Object") {
+      if (classDescriptor === "java/lang/Object") {
         return true;
       }
       
@@ -29,7 +29,7 @@ define(
       
       //It's a primitive array.
       if (this.elementType != Data.type.OBJECT) {
-        return descElementClassName == this.elementType;
+        return descElementClassName === this.elementType;
       }
       
       //Call isA on the element. It's an object array..
@@ -96,7 +96,7 @@ define(
     JavaArray.prototype.toString = function() {
       var type = this.elementType;
       
-      if (this.elementType == Data.type.OBJECT)
+      if (this.elementType === Data.type.OBJECT)
         type = this.elementClass.thisClassName;
       
       var arrayPart = "";

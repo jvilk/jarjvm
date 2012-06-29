@@ -32,7 +32,7 @@ define(
      */
     JavaObject.prototype.isA = function(classDescriptor) {
       //If it's an array, return false.
-      if (classDescriptor.charAt(0) == '[')
+      if (classDescriptor.charAt(0) === '[')
         return false;
         
       return this.classInfo.isA(classInfo);

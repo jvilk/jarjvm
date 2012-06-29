@@ -15,7 +15,7 @@ define(['FieldDescriptor', 'JavaArray', 'JavaScriptStackTrace', 'Primitives', 'M
       //Go through all attributes of the parent and add them to the child
       for (var attribute in parent){
         //alert(attribute);
-        /*if (parent[attribute] == undefined){
+        /*if (parent[attribute] === undefined){
           alert("MOTHER OF GOD");
           alert(attribute +": " + parent[attribute]);
         }*/

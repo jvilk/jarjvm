@@ -128,7 +128,7 @@ define(['ConstantPool/ConstantPool', 'FieldInfo', 'Method', 'Util', 'MethodRun',
         
       for (var attribute in this.attributes)
       {
-        if (this.attributes[attribute].attributeName == "Deprecated")
+        if (this.attributes[attribute].attributeName === "Deprecated")
         {
           this.deprecated = true;
           return true;
@@ -143,7 +143,7 @@ define(['ConstantPool/ConstantPool', 'FieldInfo', 'Method', 'Util', 'MethodRun',
      * Checks if the class has a specific access flag.
      */
     Class.prototype.hasFlag = function(mask) {
-      return (this.accessFlags & mask) == mask;
+      return (this.accessFlags & mask) === mask;
     };
 
     /**
@@ -214,10 +214,10 @@ define(['ConstantPool/ConstantPool', 'FieldInfo', 'Method', 'Util', 'MethodRun',
      * by this class.
      */
     Class.prototype.isA = function(className) {
-      if (className == "java/lang/Object")
+      if (className === "java/lang/Object")
         return true;
         
-      if (className == this.superClassName)
+      if (className === this.superClassName)
         return true;
         
       for (var i in this.interfaces)
@@ -289,10 +289,10 @@ define(['ConstantPool/ConstantPool', 'FieldInfo', 'Method', 'Util', 'MethodRun',
       for (var i = 0; i < this.methods.length; i++)
       {
         var method = this.methods[i];
-        if(method.name == name){
+        if(method.name === name){
           JVM.debugPrint(method.descriptor);
         }
-        if (method.name == name && method.descriptor == descriptor)
+        if (method.name === name && method.descriptor === descriptor)
           return method;
       }
       
@@ -312,7 +312,7 @@ define(['ConstantPool/ConstantPool', 'FieldInfo', 'Method', 'Util', 'MethodRun',
       for (var i = 0; i < this.fields.length; i++)
       {
         var field = this.fields[i];
-        if (field.name == name && field.descriptor == descriptor)
+        if (field.name === name && field.descriptor === descriptor)
           return field;
       }
       

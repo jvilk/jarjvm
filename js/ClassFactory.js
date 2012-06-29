@@ -27,9 +27,9 @@ define(['constantPool/ConstantPoolFactory', 'Attributes/AttributeFactory', 'Fiel
 
       //Register the class. This is very important, or else we could get into infinite loading loops.
       //Trying a Hack to load system
-      if (thisClassName == "System"){
+      if (thisClassName === "System"){
         JVM.registerClass("java/lang/System", klass);
-      }else if (thisClassName == "PrintStream"){
+      }else if (thisClassName === "PrintStream"){
         JVM.registerClass("java/io/PrintStream", klass);
       }else{
         JVM.registerClass(thisClassName, klass);

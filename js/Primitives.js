@@ -572,7 +572,7 @@ define(['Util'],
      * In the algorithms below, we frequently reduce the negative case to the
      * positive case by negating the input(s) and then post-processing the result.
      * Note that we must ALWAYS check specially whether those values are MIN_VALUE
-     * (-2^63) because -MIN_VALUE == MIN_VALUE (since 2^63 cannot be represented as
+     * (-2^63) because -MIN_VALUE === MIN_VALUE (since 2^63 cannot be represented as
      * a positive number, it overflows back into a negative).  Not handling this
      * case would often result in infinite recursion.
      *
@@ -709,7 +709,7 @@ define(['Util'],
      * @return {Long} The corresponding Long value.
      */
     Long.fromString = function(str, opt_radix) {
-      if (str.length == 0) {
+      if (str.length === 0) {
         throw Error('number format error: empty string');
       }
 
@@ -718,7 +718,7 @@ define(['Util'],
         throw Error('radix out of range: ' + radix);
       }
 
-      if (str.charAt(0) == '-') {
+      if (str.charAt(0) === '-') {
         return Long.fromString(str.substring(1), radix).negate();
       } else if (str.indexOf('-') >= 0) {
         throw Error('number format error: interior "-" character: ' + str);
@@ -935,7 +935,7 @@ define(['Util'],
 
     /** @return {boolean} Whether this value is zero. */
     Long.prototype.isZero = function() {
-      return this.high_ == 0 && this.low_ == 0;
+      return this.high_ === 0 && this.low_ === 0;
     };
 
 
@@ -947,7 +947,7 @@ define(['Util'],
 
     /** @return {boolean} Whether this value is odd. */
     Long.prototype.isOdd = function() {
-      return (this.low_ & 1) == 1;
+      return (this.low_ & 1) === 1;
     };
 
 
@@ -1176,7 +1176,7 @@ define(['Util'],
       if (this.equals(Long.MIN_VALUE)) {
         if (other.equals(Long.ONE) ||
             other.equals(Long.NEG_ONE)) {
-          return Long.MIN_VALUE;  // recall that -MIN_VALUE == MIN_VALUE
+          return Long.MIN_VALUE;  // recall that -MIN_VALUE === MIN_VALUE
         } else if (other.equals(Long.MIN_VALUE)) {
           return Long.ONE;
         } else {
@@ -1301,7 +1301,7 @@ define(['Util'],
      */
     Long.prototype.shiftLeft = function(numBits) {
       numBits &= 63;
-      if (numBits == 0) {
+      if (numBits === 0) {
         return this;
       } else {
         var low = this.low_;
@@ -1324,7 +1324,7 @@ define(['Util'],
      */
     Long.prototype.shiftRight = function(numBits) {
       numBits &= 63;
-      if (numBits == 0) {
+      if (numBits === 0) {
         return this;
       } else {
         var high = this.high_;
@@ -1351,7 +1351,7 @@ define(['Util'],
      */
     Long.prototype.shiftRightUnsigned = function(numBits) {
       numBits &= 63;
-      if (numBits == 0) {
+      if (numBits === 0) {
         return this;
       } else {
         var high = this.high_;
@@ -1360,7 +1360,7 @@ define(['Util'],
           return Long.fromBits(
               (low >>> numBits) | (high << (32 - numBits)),
               high >>> numBits);
-        } else if (numBits == 32) {
+        } else if (numBits === 32) {
           return Long.fromBits(high, 0);
         } else {
           return Long.fromBits(high >>> (numBits - 32), 0);

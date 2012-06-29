@@ -55,7 +55,7 @@ define(
               do
               {
                 var mask = currentPrefix >> 1 | 0x80;
-                if((b1 & mask) == currentPrefix) break;
+                if((b1 & mask) === currentPrefix) break;
                 currentPrefix = currentPrefix >> 1 | 0x80;
                 --validBits;
               } while(validBits >= 0);
@@ -70,7 +70,7 @@ define(
                 }
                 if(code <= 0xFFFF)
                 {
-                  if(code == 0xFEFF && this.waitBom)
+                  if(code === 0xFEFF && this.waitBom)
                     ch = null;
                   else
                     ch = String.fromCharCode(code);

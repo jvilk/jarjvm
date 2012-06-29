@@ -21,7 +21,7 @@ define(['Util', 'Enum'],
       //TODO: Never reach into an object like this.
       this.className = constantPool.getClassInfo(this.classIndex);
       this.nameAndType = constantPool.get(this.nameAndTypeIndex);
-      Util.assert(this.nameAndType.getTag() == Enum.constantPoolTag.NAMEANDTYPE);
+      Util.assert(this.nameAndType.getTag() === Enum.constantPoolTag.NAMEANDTYPE);
     };
 
     /**

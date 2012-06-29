@@ -54,7 +54,7 @@ define(['Util', 'MethodRun', 'Primitives', 'ByteCode'],
         //JVM.debugPrint("Local at " + effectiveI + ": " + variable.value);
         methodArguments.push(variable);
         //methodArguments.push(frame.pop());
-        if (methodArguments[i] !== undefined && (methodArguments[i].dataType == Data.type.LONG || methodArguments[i].dataType == Data.type.DOUBLE))
+        if (methodArguments[i] !== undefined && (methodArguments[i].dataType === Data.type.LONG || methodArguments[i].dataType === Data.type.DOUBLE))
         {
           effectiveI++;
         }
@@ -90,7 +90,7 @@ define(['Util', 'MethodRun', 'Primitives', 'ByteCode'],
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(Z)V", function(){
       var arrayOfArguments = NativeFunctions.getArguments("(B)V");
       var booleanToPrint = arrayOfArguments[0];
-      if (booleanToPrint.value == 1){
+      if (booleanToPrint.value === 1){
         JVM.println("True");
       }else{
         JVM.println("False");

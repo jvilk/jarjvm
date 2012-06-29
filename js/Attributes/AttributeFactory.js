@@ -26,13 +26,13 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
         //Switching on Strings? In MY JavaScript? It's more likely than you think...
         switch(attributeName) {
           case "SourceFile":
-            Util.assert(attributeLength == 2);
+            Util.assert(attributeLength === 2);
             var sourceFileIndex = jcr.getUintField(2);
             var sourceFile = constantPool.getUTF8Info(sourceFileIndex);
             attributes[i] = new SourceFileAttribute(attributeName, attributeLength, sourceFile);
             break;
           case "ConstantValue":
-            Util.assert(attributeLength == 2);
+            Util.assert(attributeLength === 2);
             var constantValueIndex = jcr.getUintField(2);
             var constantValue = constantPool.get(constantValueIndex);
             attributes[i] = new ConstantValueAttribute(attributeName, attributeLength, constantValue);
@@ -241,7 +241,7 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
           case ByteCode.codes.putstatic:
             index = jcr.getUintField(2);
             var field = constantPool.get(index);
-            Util.assert(field.getTag() == Enum.constantPoolTag.FIELDREF);
+            Util.assert(field.getTag() === Enum.constantPoolTag.FIELDREF);
             insObj = new Instruction(3, instr, field);
             break;
           
@@ -252,7 +252,7 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
           case ByteCode.codes.invokeinterface:
             index = jcr.getUintField(2);
             var intMeth = constantPool.get(index);
-            Util.assert(intMeth.getTag() == Enum.constantPoolTag.INTERFACEMETHODREF);
+            Util.assert(intMeth.getTag() === Enum.constantPoolTag.INTERFACEMETHODREF);
             var count = jcr.getUintField(1);
             //Waste a byte.
             var wasted = jcr.getUintField(1);
@@ -269,7 +269,7 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
           case ByteCode.codes.invokevirtual:
             index = jcr.getUintField(2);
             var method = constantPool.get(index);
-            Util.assert(method.getTag() == Enum.constantPoolTag.METHODREF);
+            Util.assert(method.getTag() === Enum.constantPoolTag.METHODREF);
             insObj = new Instruction(3, instr, method);
             break;
           
@@ -280,10 +280,10 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
             uint1 = jcr.getUintField(1);
             constant = constantPool.get(uint1);
             
-            Util.assert(constant.getTag() == Enum.constantPoolTag.INTEGER ||
-              constant.getTag() == Enum.constantPoolTag.FLOAT ||
-              constant.getTag() == Enum.constantPoolTag.STRING||
-              constant.getTag() == Enum.constantPoolTag.CLASS);
+            Util.assert(constant.getTag() === Enum.constantPoolTag.INTEGER ||
+              constant.getTag() === Enum.constantPoolTag.FLOAT ||
+              constant.getTag() === Enum.constantPoolTag.STRING||
+              constant.getTag() === Enum.constantPoolTag.CLASS);
             insObj = new Instruction(2, instr, constant);
             break;
           
@@ -291,10 +291,10 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
             index = jcr.getUintField(2);
             constant = constantPool.get(index);
               
-            Util.assert(constant.getTag() == Enum.constantPoolTag.INTEGER ||
-              constant.getTag() == Enum.constantPoolTag.FLOAT ||
-              constant.getTag() == Enum.constantPoolTag.STRING ||
-              constant.getTag() == Enum.constantPoolTag.CLASS);
+            Util.assert(constant.getTag() === Enum.constantPoolTag.INTEGER ||
+              constant.getTag() === Enum.constantPoolTag.FLOAT ||
+              constant.getTag() === Enum.constantPoolTag.STRING ||
+              constant.getTag() === Enum.constantPoolTag.CLASS);
               
             insObj = new Instruction(3, instr, constant);
             break;
@@ -304,8 +304,8 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
           case ByteCode.codes.ldc2_w:
             index = jcr.getUintField(2);
             constant = constantPool.get(index);
-            Util.assert(constant.getTag() == Enum.constantPoolTag.DOUBLE ||
-              constant.getTag() == Enum.constantPoolTag.LONG);
+            Util.assert(constant.getTag() === Enum.constantPoolTag.DOUBLE ||
+              constant.getTag() === Enum.constantPoolTag.LONG);
             insObj = new Instruction(3, instr, constant);
             break;
           
@@ -375,17 +375,17 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
             //iload, fload, aload, lload, dload, istore, fstore, astore, lstore, dstore, or ret.
             if (opcode != ByteCode.codes.iinc)
             {
-              Util.assert(opcode == ByteCode.codes.iload ||
-                opcode == ByteCode.codes.fload ||
-                opcode == ByteCode.codes.aload ||
-                opcode == ByteCode.codes.lload ||
-                opcode == ByteCode.codes.dload ||
-                opcode == ByteCode.codes.istore ||
-                opcode == ByteCode.codes.fstore ||
-                opcode == ByteCode.codes.astore ||
-                opcode == ByteCode.codes.lstore ||
-                opcode == ByteCode.codes.dstore ||
-                opcode == ByteCode.codes.ret);
+              Util.assert(opcode === ByteCode.codes.iload ||
+                opcode === ByteCode.codes.fload ||
+                opcode === ByteCode.codes.aload ||
+                opcode === ByteCode.codes.lload ||
+                opcode === ByteCode.codes.dload ||
+                opcode === ByteCode.codes.istore ||
+                opcode === ByteCode.codes.fstore ||
+                opcode === ByteCode.codes.astore ||
+                opcode === ByteCode.codes.lstore ||
+                opcode === ByteCode.codes.dstore ||
+                opcode === ByteCode.codes.ret);
               insObj = new Instruction(4, instr, opcode, index);
             }
             //The second form applies only to the iinc instruction.
@@ -418,8 +418,8 @@ define(['Attributes/ClassEntry', 'Attributes/CodeAttribute', 'Attributes/Constan
         i += insObj.length;
       }
       //Let's make sure we read in ALL of the code.
-      Util.assert(i == codeLength);
-      Util.assert(jcr.index - oldIndex == codeLength);
+      Util.assert(i === codeLength);
+      Util.assert(jcr.index - oldIndex === codeLength);
       
       //An Array of ExceptionTableEntries
       var exceptionTableLength = jcr.getUintField(2);

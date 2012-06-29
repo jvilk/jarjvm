@@ -36,12 +36,12 @@ require(['VM', 'Enum', 'JavaClassReader', 'ClassFactory', 'Util'],
         var reader = new FileReader();
 
         reader.onloadend = function(evt) {
-          if(evt.target.readyState == FileReader.DONE) {
+          if(evt.target.readyState === FileReader.DONE) {
             JVM.println("File Read In");
             var bytes = evt.target.result;
             var javaClassReader = new JavaClassReader(bytes);
             var aClass = ClassFactory.parseClass(javaClassReader);
-            Util.assert(javaClassReader.getOffset() == javaClassReader.data.length);
+            Util.assert(javaClassReader.getOffset() === javaClassReader.data.length);
           }
         };
 

@@ -41,7 +41,7 @@ define(
       JVM.getExecutingThread().setPC(this.pc);
       currentMethod = JVM.getExecutingThread().getCurrentMethod();
       JVM.debugPrint("Executing a methodRun for " + currentMethod + " with PC " + this.pc);
-      if (this.type == MethodRun.type.EXCEPTION)
+      if (this.type === MethodRun.type.EXCEPTION)
         currentMethod.exception(this.exception);
       else
         currentMethod.execute();
@@ -53,7 +53,7 @@ define(
     MethodRun.prototype.toString = function() {
       var typeStr = "";
       for (var type in MethodRun.type) {
-        if (MethodRun.type[type] == this.type) {
+        if (MethodRun.type[type] === this.type) {
           typeStr = type;
           break;
         }
@@ -168,7 +168,7 @@ define(
         {
           //Rethrow if the exception cannot be handled in the area of the stack made by this
           //native call.
-          if (JVM.getExecutingThread().getStackLength() == oldStackLength)
+          if (JVM.getExecutingThread().getStackLength() === oldStackLength)
           {
             //Pop off our fake frame.
             JVM.getExecutingThread().popFrame();
