@@ -16,7 +16,7 @@ In order to use JAR JVM, you must do the following:
 
 Status
 ======
-JAR JVM is currently in extreme alpha state. We are working hard to create a subtantial body of unit tests to the existing code before adding new features.
+JAR JVM is currently in extreme alpha state. We are working hard to create a subtantial body of unit tests for the existing code before adding new features.
 
 Once that is done, we have a number of exciting feature ideas!
 
@@ -25,5 +25,7 @@ Name
 Why is it called JAR JVM? Well, JAR JVM was initially developed by three people for a class project:
 
 __J__ohn Vilk
+
 __A__meer Rahmati
+
 __R__yan Hurley
