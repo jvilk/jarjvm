@@ -1,0 +1,14 @@
+JRE class files go here. You must extract them from the JAR file so they are bare .class files.
+
+You should be able to do this on Mac OSX by doing the following:
+
+cd jre/
+unzip /System/Library/Frameworks/JavaVM.framework/Classes/classes.jar
+
+When done correctly, you will have the following subfolders:
+com
+java
+javax
+org
+sun
+sunw
