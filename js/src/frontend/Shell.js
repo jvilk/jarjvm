@@ -296,8 +296,6 @@ define(['util/Util', 'vm/JavaArray', 'vm/Enum', 'vm/MethodRun'],
       
       for (var i = 1; i < arguments.length; i++)
       {
-        //Create a String object.
-        shell.stdout("Creating string w/ text " + arguments[i] + "\n");
         var stringObj = Util.getJavaString(arguments[i]);
         
         args.set(i, stringObj);
