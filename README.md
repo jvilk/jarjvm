@@ -9,6 +9,7 @@ In order to use JAR JVM, you must do the following:
 1. JAR JVM currently requires a copy of the Java Class Library. We do not distribute this with JAR JVM. The command to do this on a Mac is the following:
 
 > cd jre/
+
 > unzip /System/Library/Frameworks/JavaVM.framework/Classes/classes.jar
 
 2. Once that is done, run server.py to run a simple HTTP server locally that serves the JVM.
