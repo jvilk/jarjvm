@@ -1,14 +1,5 @@
-define(['Util'],
-  function(Util) {
-
-    DataTypes = {
-      Uint: 0,
-      Int: 1,
-      Byte: 2,
-      UTF8: 3,
-      Double: 4,
-      Float: 5
-    };
+define(['util/Util', '../test/StructDataTypes'],
+  function(Util, StructDataTypes) {
 
     function MockJavaClassReader() {
       this.data = [];
@@ -16,33 +7,15 @@ define(['Util'],
       this.index = 0;
     }
 
-    MockJavaClassReader.prototype.addUint = function(numBytes, value) {
-      this.addField(DataTypes.Uint, numBytes, value);
-    };
-
-    MockJavaClassReader.prototype.addInt = function(numBytes, value) {
-      this.addField(DataTypes.Int, numBytes, value);
-    };
-
-    MockJavaClassReader.prototype.addUTF8String = function(string) {
-      //TODO: string length != byte length for utf8.
-      this.addField(DataTypes.UTF8, value.length, value);
-    };
-
     MockJavaClassReader.prototype.getOffset = function() {
       return this.offset;
     };
 
-    MockJavaClassReader.prototype.addFloatField = function(numBytes, value) {
-      this.addField(DataTypes.Float, numBytes, value);
-    };
-
-    MockJavaClassReader.prototype.addDoubleField = function(numBytes, value) {
-      this.addField(DataTypes.Double, numBytes, value);
-    };
-
-    MockJavaClassReader.prototype.addField = function(type, numBytes, value) {
-      this.data.push({'type': type, 'value': value, 'numBytes': numBytes});
+    MockJavaClassReader.prototype.addField = function(type, value, name) {
+      Util.assert(type in StructDataTypes && 'addField is only used for primitives.');
+      name = name === undefined ? '' : name;
+      var numBytes = type === 'utf8' ? value.length : StructDataTypes[type];
+      this.data.push({'type': type, 'value': value, 'numBytes': numBytes, 'name': name});
     };
 
     MockJavaClassReader.prototype.getField = function(fieldType, fieldLength) {
@@ -51,27 +24,27 @@ define(['Util'],
       this.index++;
       Util.assert(field.type === fieldType);
       Util.assert(field.numBytes === fieldLength);
-      return field;
+      return field.value;
     };
 
     MockJavaClassReader.prototype.getUTF8Field = function(fieldLength) {
-      return this.getField(DataTypes.UTF8, fieldLength);
+      return this.getField('utf8', fieldLength);
     };
 
     MockJavaClassReader.prototype.getIntField = function(fieldLength) {
-      return this.getField(DataTypes.Int, fieldLength);
+      return this.getField('i' + fieldLength, fieldLength);
     };
 
     MockJavaClassReader.prototype.getDoubleField = function(fieldLength) {
-      return this.getField(DataTypes.Double, fieldLength);
+      return this.getField('double', fieldLength);
     };
 
     MockJavaClassReader.prototype.getFloatField = function(fieldLength) {
-      return this.getField(DataTypes.Float, fieldLength);
+      return this.getField('float', fieldLength);
     };
 
     MockJavaClassReader.prototype.getUintField = function(fieldLength) {
-      return this.getField(DataTypes.Uint, fieldLength);
+      return this.getField('u' + fieldLength, fieldLength);
     };
 
     return MockJavaClassReader;

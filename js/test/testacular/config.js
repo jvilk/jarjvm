@@ -9,7 +9,12 @@ basePath = '../..';
 
 // list of files / patterns to load in the browser
 files = [
-  'Test/*test.js'
+  JASMINE,
+  JASMINE_ADAPTER,
+  'src/lib/require.js', //Load this first, before any modules.
+  'src/*.js',
+  'src/*/*.js',
+  'test/*.js'
 ];
 
 // list of files to exclude
@@ -44,7 +49,7 @@ autoWatchInterval = 100;
 // - Firefox
 // - Opera
 // - Safari
-browsers = [];
+browsers = ['Chrome'];
 
 // Auto run tests on start (when browsers are captured) and exit
 singleRun = false;

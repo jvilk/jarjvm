@@ -1413,10 +1413,10 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       ByteCode.cmpg();
     };
     ByteCode.instrs[ByteCode.codes.lconst_0] = function() {
-      ByteCode.push(Primitives.getLong.fromInt(0));
+      ByteCode.push(Primitives.getLongFromNumber(0));
     };
     ByteCode.instrs[ByteCode.codes.lconst_1] = function() {
-      ByteCode.push(Primitives.getLong.fromInt(1));
+      ByteCode.push(Primitives.getLongFromNumber(1));
     };
     ByteCode.instrs[ByteCode.codes.ldc] = function(constant) {
       if(constant.getTag() === Enum.constantPoolTag.INTEGER) {

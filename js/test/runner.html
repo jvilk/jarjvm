@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Spec Runner</title>
+  <!-- Jasmine lib / testing includes -->
+  <link rel="shortcut icon" type="image/png" href="../src/lib/jasmine/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="../src/lib/jasmine/jasmine.css">
+  <script type="text/javascript" src="../src/lib/jasmine/jasmine.js"></script>
+  <script type="text/javascript" src="../src/lib/jasmine/jasmine-html.js"></script>
+  <!-- ... -->
+
+  <!-- global lib includes -->
+  <script type="text/javascript" src="../src/lib/jasmine/jquery-1.4.3.js"></script>
+  <script src="../src/lib/require.js"></script>
+  <!-- ... -->
+
+  <script type="text/javascript">
+
+    require.config({
+      baseUrl: '../src'
+    });
+
+    require([
+      '../test/StructTest.spec'
+    ],
+      function() {
+        $(function() {
+          jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+          jasmine.getEnv().execute();
+        });
+      });
+
+  </script>
+</head>
+<body>
+  <!-- empty on purpose -->
+</body>
+</html>

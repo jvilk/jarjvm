@@ -30,7 +30,10 @@ define(['vm/FieldDescriptor', 'vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/Pr
       if (!assertion)
       {
         var stackTrace = printStackTrace();
-        JVM.printError("Assertion Failed:\n" + stackTrace);
+        //We use this function in unit tests where JVM is not defined.
+        if (typeof JVM !== 'undefined') {
+          JVM.printError("Assertion Failed:\n" + stackTrace);
+        }
         throw "Assertion Failed:\n" + stackTrace;
       }
     };

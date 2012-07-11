@@ -1,0 +1,5 @@
+describe('AttributeFactoryTest',
+  function() {
+
+  }
+);
