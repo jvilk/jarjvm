@@ -1,12 +1,14 @@
 /**
  * Contains unit tests for the ConstantPoolFactory class, which is
  * responsible for parsing out ConstantPool items.
+ *
+ * lol this is a long class. I should break this up into submodules at some point,
+ * with a module devoted solely to helper functions...
  */
-define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '../test/Struct', 'vm/Enum', 'vm/Primitives'],
-  function(ConstantPoolFactory, MockJavaClassReader, Struct, Enum, Primitives) {
+define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'vm/Enum', 'vm/Primitives'],
+  function(ConstantPoolFactory, MockJavaClassReader, Enum, Primitives) {
     var cr,
     /** HELPER FUNCTIONS **/
-
       /**
        * Run before every test. Resets the class reader.
        */
@@ -147,6 +149,23 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
         _testRefType(Enum.constantPoolTag.FIELDREF, cp, idx, natIdx, className);
       },
       /**
+       * A version of 'makeFieldref' that generates all dependent
+       * constant pool items.
+       */
+      enhancedMakeFieldref = function(className, fieldName, fieldDesc, extraSlots) {
+        extraSlots = extraSlots === undefined ? 0 : extraSlots;
+
+        reset();
+
+        initCp(6+extraSlots);
+        makeUTF8(className); //1
+        makeUTF8(fieldName); //2
+        makeUTF8(fieldDesc); //3
+        makeClass(1); //4
+        makeNat(2, 3); //5
+        makeFieldref(4, 5); //6
+      },
+      /**
        * Creates a CONSTANT_Methodref_info struct with that
        * references a CONSTANT_Class_info struct at the
        * given index, and a CONSTANT_NameAndType_info struct
@@ -159,6 +178,23 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
         _testRefType(Enum.constantPoolTag.METHODREF, cp, idx, natIdx, className);
       },
       /**
+       * A version of 'makeMethodref' that generates all dependent
+       * constant pool items automatically.
+       */
+      enhancedMakeMethodref = function(className, methodName, methodDesc, extraSlots) {
+        extraSlots = extraSlots === undefined ? 0 : extraSlots;
+
+        reset();
+
+        initCp(6+extraSlots);
+        makeUTF8(className); //1
+        makeUTF8(methodName); //2
+        makeUTF8(methodDesc); //3
+        makeClass(1); //4
+        makeNat(2, 3); //5
+        makeMethodref(4, 5); //6
+      },
+      /**
        * Creates a CONSTANT_InterfaceMethodref_info struct with that
        * references a CONSTANT_Class_info struct at the
        * given index, and a CONSTANT_NameAndType_info struct
@@ -169,6 +205,23 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
       },
       testInterfaceMethodref = function(cp, idx, natIdx, className) {
         _testRefType(Enum.constantPoolTag.INTERFACEMETHODREF, cp, idx, natIdx, className);
+      },
+      /**
+       * A version of 'makeInterfaceMethodref' that generates all dependent
+       * constant pool items automatically.
+       */
+      enhancedMakeInterfaceMethodref = function(className, methodName, methodDesc, extraSlots) {
+        extraSlots = extraSlots === undefined ? 0 : extraSlots;
+
+        reset();
+
+        initCp(6+extraSlots);
+        makeUTF8(className); //1
+        makeUTF8(methodName); //2
+        makeUTF8(methodDesc); //3
+        makeClass(1); //4
+        makeNat(2, 3); //5
+        makeInterfaceMethodref(4, 5); //6
       },
       /**
        * Creates a CONSTANT_NameAndType_info struct with
@@ -193,9 +246,46 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
        * at the given index.
        */
       makeMethodHandle = function(referenceKind, referenceIndex) {
-        cr.addField('u1', 15);
+        cr.addField('u1', Enum.constantPoolTag.METHODHANDLE);
         cr.addField('u1', referenceKind);
         cr.addField('u2', referenceIndex);
+      },
+      testMethodHandle = function(cp, idx, referenceKind, referenceIndex) {
+        var cpItem = cp.get(idx);
+        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.METHODHANDLE);
+        expect(cpItem.getReferenceKind()).toBe(referenceKind);
+        expect(cpItem.getReference()).toBe(cp.get(referenceIdx));
+      },
+      /**
+       * Creates a CONSTANT_MethodType_info struct with the
+       * descriptor from a CONSTANT_Utf8_info struct found
+       * at the specified index in the constant pool.
+       */
+      makeMethodType = function(descriptorIdx) {
+        cr.addField('u1', Enum.constantPoolTag.METHODTYPE);
+        cr.addField('u2', descriptorIdx);
+      },
+      testMethodType = function(cp, idx, desc) {
+        var cpItem = cp.get(idx);
+        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.METHODTYPE);
+        expect(cpItem.getDescriptor()).toBe(desc);
+      },
+      /**
+       * Creates a CONSTANT_InvokeDynamic_info struct with
+       * the given index into the class's bootstrap_methods table
+       * and the name and type info found at the given index into
+       * the constant pool.
+       */
+      makeInvokeDynamic = function(bootstrapIdx, natIdx) {
+        cr.addField('u1', Enum.constantPoolTag.INVOKEDYNAMIC);
+        cr.addField('u2', bootstrapIdx);
+        cr.addField('u2', natIdx);
+      },
+      testInvokeDynamic = function(cp, idx, bootstrapIdx, natIdx) {
+        var cpItem = cp.get(idx);
+        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.INVOKEDYNAMIC);
+        expect(cpItem.bootstrapIdx).toBe(bootstrapIdx);
+        expect(cpItem.nameAndType).toBe(cp.get(natIdx));
       },
       /**
        * Constructs and returns the ConstantPool constructed using the
@@ -213,7 +303,6 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
         var args = Array.prototype.slice.apply(arguments);
         expect(function() { object[fcnName].apply(object, args.slice(2)); }).toThrow();
       },
-
       /**
        * SAMPLE CONSTANT POOL
        * Below, we construct a sample constant pool with the given sample data.
@@ -247,7 +336,10 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
       sampleFieldrefIdx = 22,
       sampleMethodrefIdx = 23,
       sampleInterfaceMethodrefIdx = 24,
-      sampleCpSize = 24,
+      sampleCpSize = 27,
+      sampleMethodHandleIdx = 25,
+      sampleMethodTypeIdx = 26,
+      sampleInvokeDynamicIdx = 27,
       /**
        * Adds data to the class reader to build
        * a comprehensive sample constant pool.
@@ -255,7 +347,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
        * we should allocate into the constant pool.
        */
       sampleCp = function(emptySlots) {
-        initCp(24 + emptySlots);
+        initCp(27 + emptySlots);
 
         //We'll place all of the constants on top.
         makeUTF8(sampleClassName); //1
@@ -284,25 +376,24 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
         makeFieldref(16, 19); //22
         makeMethodref(16, 20); //23
         makeInterfaceMethodref(17, 21); //24
-      },
-      /**
-       * Runs the function on each element of the array.
-       * We do this because Array.prototype.forEach isn't standard,
-       * and I don't want to change the prototype.
-       * Resets after each iteration.
-       */
-      iterateTest = function(array, func) {
-        var i;
-        for (i = 0; i < array.length; i++) {
-          func(array[i]);
-        }
+
+        makeMethodHandle(Enum.referenceKind.GETFIELD, 22); //25
+        makeMethodType(5); //26
+        makeInvokeDynamic(3, 20); //27
       };
 
+    /**
+     * Ensure that we can use forEach on Arrays.
+     */
+    if ( !Array.prototype.forEach ) {
+      Array.prototype.forEach = function(fn, scope) {
+        for(var i = 0, len = this.length; i < len; ++i) {
+          fn.call(scope || this, this[i], i, this);
+        }
+      };
+    }
+
     /** BEGIN THE TESTS :) **/
-    //Remember: For each reference, do an invalid reference of each type.
-    //Also, make a reference to an out-of-range index.
-    //Also, make a reference to '0' whenever it can be valid.
-    //Also, test 'toString' at least once.
 
     describe("ConstantPool: Empty ConstantPool Tests",
       function() {
@@ -338,7 +429,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
           function() {
             var strings = [" ", "t", "test"];
 
-            iterateTest(strings,
+            strings.forEach(
               function(value) {
                 var cp;
                 initCp(1);
@@ -425,9 +516,12 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleClassIdx,
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx];
+                            sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx];
 
-            iterateTest(badIndices, function(idx) {
+            badIndices.forEach(function(idx) {
               sampleCp(1);
               makeString(idx);
               expect(getCp).toThrow();
@@ -457,7 +551,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
           function() {
             var values = [0, 1, -1];
 
-            iterateTest(values, function(aValue) {
+            values.forEach(function(aValue) {
               initCp(1);
               makeInt(aValue);
               testInt(getCp(), 1, aValue);
@@ -476,7 +570,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
           function() {
             var values = [0, 1.1, -1.1];
 
-            iterateTest(values, function(aValue) {
+            values.forEach(function(aValue) {
               initCp(1);
 
               makeFloat(aValue);
@@ -497,7 +591,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
           function() {
             var values = [0, 3934848484, -494949494];
 
-            iterateTest(values, function(aValue) {
+            values.forEach(function(aValue) {
               var cp;
               initCp(2);
               makeLong(aValue);
@@ -543,7 +637,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
           function() {
             var values = [0, 1.1, -1.1, 2.343432324];
 
-            iterateTest(values, function(aValue) {
+            values.forEach(function(aValue) {
               var cp;
               initCp(2);
               makeDouble(aValue);
@@ -592,7 +686,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
               goodNames = ['ha/lp', 'h/a/l/p', 'h]/a]/l]/p]', 'hello good sir/give me your/ java classes '],
               badNames = ['/halp', 'halp/', 'h//a//l//p', '.halp', 'halp.', 'ha.lp', ';halp', 'halp;', 'ha;lp', '[halp', 'halp[', 'ha[lp', '/halp/['];
 
-            iterateTest(goodNames, function(goodName) {
+            goodNames.forEach(function(goodName) {
               var cp;
               initCp(2);
               makeUTF8(goodName);
@@ -603,7 +697,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
               reset();
             });
 
-            iterateTest(badNames, function(badName) {
+            badNames.forEach(function(badName) {
               initCp(2);
               makeUTF8(badName);
               makeClass(1);
@@ -628,9 +722,12 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
                             sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
                             50]; //Out of range
 
-            iterateTest(badIndices, function(badIndex) {
+            badIndices.forEach(function(badIndex) {
               sampleCp(1);
               makeClass(badIndex);
               expect(getCp).toThrow();
@@ -689,7 +786,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
             var badNames = ["<help>", "<help", "he<lp", "he>lp", ";he;lp", "he.lp", "he/lp"],
               type = "()V";
 
-            iterateTest(badNames, function(badName) {
+            badNames.forEach(function(badName) {
               setupNatTest(badName, type);
               expect(getCp).toThrow();
             });
@@ -712,21 +809,21 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleInterfaceMethodrefIdx,
                             50]; //Out of range
 
-            iterateTest(badIndices, function(badIndex1) {
+            badIndices.forEach(function(badIndex1) {
               sampleCp(2);
               makeUTF8("()V");
-              makeNat(badIndex1, 25);
+              makeNat(badIndex1, sampleCpSize+1);
               expect(getCp).toThrow();
               reset();
 
               sampleCp(2);
               makeUTF8("test");
-              makeNat(25, badIndex1);
+              makeNat(sampleCpSize+1, badIndex1);
               expect(getCp).toThrow();
               reset();
 
               //Yo, dawg...
-              iterateTest(badIndices, function(badIndex2) {
+              badIndices.forEach(function(badIndex2) {
                 sampleCp(1);
                 makeNat(badIndex1, badIndex2);
                 expect(getCp).toThrow();
@@ -741,24 +838,6 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
     describe("ConstantPool: CONSTANT_Fieldref_info (§4.4.2)",
       function() {
         beforeEach(reset);
-
-        /**
-         * A version of 'makeFieldref' that generates all dependent
-         * constant pool items.
-         */
-        var enhancedMakeFieldref = function(className, fieldName, fieldDesc, extraSlots) {
-          extraSlots = extraSlots === undefined ? 0 : extraSlots;
-
-          reset();
-
-          initCp(6+extraSlots);
-          makeUTF8(className); //1
-          makeUTF8(fieldName); //2
-          makeUTF8(fieldDesc); //3
-          makeClass(1); //4
-          makeNat(2, 3); //5
-          makeFieldref(4, 5); //6
-        };
 
         it("should accept a fieldref",
           function() {
@@ -807,6 +886,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
                             sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
                             50], //Out of range
               badNatIndices = [sampleIntIdx,
                             sampleFloatIdx,
@@ -818,15 +900,18 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
                             sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
                             50]; //Out of range
 
-            iterateTest(badClassIndices, function(badClassIndex) {
+            badClassIndices.forEach(function(badClassIndex) {
               sampleCp(1);
               makeFieldref(badClassIndex, sampleFieldrefNatIdx);
               expect(getCp).toThrow();
               reset();
 
-              iterateTest(badNatIndices, function(badNatIndex) {
+              badNatIndices.forEach(function(badNatIndex) {
                 sampleCp(1);
                 makeFieldref(sampleClassIdx, badNatIndex);
                 expect(getCp).toThrow();
@@ -846,24 +931,6 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
     describe("ConstantPool: CONSTANT_Methodref_info (§4.4.2)",
       function() {
         beforeEach(reset);
-
-        /**
-         * A version of 'makeMethodref' that generates all dependent
-         * constant pool items automatically.
-         */
-        var enhancedMakeMethodref = function(className, methodName, methodDesc, extraSlots) {
-          extraSlots = extraSlots === undefined ? 0 : extraSlots;
-
-          reset();
-
-          initCp(6+extraSlots);
-          makeUTF8(className); //1
-          makeUTF8(methodName); //2
-          makeUTF8(methodDesc); //3
-          makeClass(1); //4
-          makeNat(2, 3); //5
-          makeMethodref(4, 5); //6
-        };
 
         it("should accept a methodref",
           function() {
@@ -923,6 +990,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
                             sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
                             50], //Out of range
               badNatIndices = [sampleIntIdx,
                             sampleFloatIdx,
@@ -934,15 +1004,18 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
                             sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
                             50]; //Out of range
 
-            iterateTest(badClassIndices, function(badClassIndex) {
+            badClassIndices.forEach(function(badClassIndex) {
               sampleCp(1);
               makeMethodref(badClassIndex, sampleFieldrefNatIdx);
               expect(getCp).toThrow();
               reset();
 
-              iterateTest(badNatIndices, function(badNatIndex) {
+              badNatIndices.forEach(function(badNatIndex) {
                 sampleCp(1);
                 makeMethodref(sampleClassIdx, badNatIndex);
                 expect(getCp).toThrow();
@@ -963,24 +1036,6 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
     describe("ConstantPool: CONSTANT_InterfaceMethodref_info (§4.4.2)",
       function() {
         beforeEach(reset);
-
-        /**
-         * A version of 'makeInterfaceMethodref' that generates all dependent
-         * constant pool items automatically.
-         */
-        var enhancedMakeInterfaceMethodref = function(className, methodName, methodDesc, extraSlots) {
-          extraSlots = extraSlots === undefined ? 0 : extraSlots;
-
-          reset();
-
-          initCp(6+extraSlots);
-          makeUTF8(className); //1
-          makeUTF8(methodName); //2
-          makeUTF8(methodDesc); //3
-          makeClass(1); //4
-          makeNat(2, 3); //5
-          makeInterfaceMethodref(4, 5); //6
-        };
 
         it("should accept an interfacemethodref",
           function() {
@@ -1027,6 +1082,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
                             sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
                             50], //Out of range
               badNatIndices = [sampleIntIdx,
                             sampleFloatIdx,
@@ -1038,15 +1096,18 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
                             sampleFieldrefIdx,
                             sampleMethodrefIdx,
                             sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
                             50]; //Out of range
 
-            iterateTest(badClassIndices, function(badClassIndex) {
+            badClassIndices.forEach(function(badClassIndex) {
               sampleCp(1);
               makeInterfaceMethodref(badClassIndex, sampleFieldrefNatIdx);
               expect(getCp).toThrow();
               reset();
 
-              iterateTest(badNatIndices, function(badNatIndex) {
+              badNatIndices.forEach(function(badNatIndex) {
                 sampleCp(1);
                 makeInterfaceMethodref(sampleClassIdx, badNatIndex);
                 expect(getCp).toThrow();
@@ -1085,6 +1146,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
             //Verify the sanity of the pool.
             cpItem = cp.get(0);
             expect(cpItem).toBe(undefined);
+            expect(cp.getLength()).toBe(sampleCpSize);
 
             //UTF8
             testUtf8(cp, 1, sampleClassName);
@@ -1137,6 +1199,15 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
 
             //InterfaceMethodRef
             testInterfaceMethodref(cp, sampleInterfaceMethodrefIdx, sampleInterfaceMethodrefNatIdx, sampleInterfaceName);
+
+            //MethodHandle
+            testMethodHandle(cp, sampleMethodHandleIdx, Enum.referenceKind.GETFIELD, sampleFieldrefIdx);
+
+            //MethodType
+            testMethodType(cp, sampleMethodTypeIdx, 5);
+
+            //InvokeDynamic
+            testInvokeDynamic(cp, sampleInvokeDynamicIdx, 3, 20);
           }
         );
 
@@ -1147,7 +1218,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
             makeNat(7, 8);
 
             cp = getCp();
-            testNat(cp, 25, sampleInterfaceMethodName, sampleInterfaceMethodDescriptor);
+            testNat(cp, sampleCpSize+1, sampleInterfaceMethodName, sampleInterfaceMethodDescriptor);
           }
         );
       }
@@ -1157,53 +1228,411 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', '.
       function() {
         beforeEach(reset);
 
+        it("should accept a MethodHandle constant pool item",
+          function() {
+            var className = "Blargh",
+                methodName = "Yarg",
+                methodDesc = "()V",
+                referenceKind = Enum.referenceKind.INVOKEVIRTUAL,
+                cp;
+
+            enhancedMakeMethodref(className, methodName, methodDesc, 1);
+            makeMethodHandle(referenceKind, 6);
+
+            cp = getCp();
+            testMethodHandle(cp, 7, referenceKind, 6);
+            reset();
+
+            //Now try with a forward reference.
+            initCp(7);
+            makeMethodHandle(referenceKind, 7); //1
+            makeUTF8(className); //2
+            makeUTF8(methodName); //3
+            makeUTF8(methodDesc); //4
+            makeClass(2); //5
+            makeNat(3, 4); //6
+            makeMethodref(5, 6); //7
+
+            cp = getCp();
+            testMethodHandle(cp, 1, referenceKind, 7);
+          }
+        );
+
+        it("should ensure the reference item for [get|put]Field and [get|put]Static is a fieldref",
+          function() {
+            var className = "Blargh",
+                fieldName = "yargh",
+                fieldDesc = "B",
+                methodName = "hey",
+                methodDesc = "()V",
+                referenceKinds = [Enum.referenceKind.GETFIELD,
+                                  Enum.referenceKind.PUTFIELD,
+                                  Enum.referenceKind.GETSTATIC,
+                                  Enum.referenceKind.PUTSTATIC];
+
+            referenceKinds.forEach(function(referenceKind) {
+              var cp;
+
+              //This should pass.
+              enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              cp = getCp();
+              testMethodHandle(cp, 7, referenceKind, 7);
+              reset();
+
+              //These should fail.
+              enhancedMakeMethodref(className, methodName, methodDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              expect(getCp).toThrow();
+              reset();
+
+              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              expect(getCp).toThrow();
+              reset();
+            });
+          }
+        );
+
+        it("should ensure that the reference item for invoke[Virtual|Static|Special] is a MethodRef",
+          function() {
+            var className = "Blargh",
+                fieldName = "yargh",
+                fieldDesc = "B",
+                methodName = "hey",
+                methodDesc = "()V",
+                referenceKinds = [Enum.referenceKind.INVOKEVIRTUAL,
+                                  Enum.referenceKind.INVOKESTATIC,
+                                  Enum.referenceKind.INVOKESPECIAL];
+
+            referenceKinds.forEach(function(referenceKind) {
+              var cp;
+
+              //This should fail.
+              enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              expect(getCp).toThrow();
+              reset();
+
+              //This should pass.
+              enhancedMakeMethodref(className, methodName, methodDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              cp = getCp();
+              testMethodHandle(cp, 7, referenceKind, 7);
+              reset();
+
+              //This should fail.
+              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              expect(getCp).toThrow();
+              reset();
+            });
+          }
+        );
+
+        it("should ensure that the reference item for invokeInterface is an InterfaceMethodInfo",
+          function() {
+            var className = "Blargh",
+                fieldName = "yargh",
+                fieldDesc = "B",
+                methodName = "hey",
+                methodDesc = "()V",
+                referenceKind = Enum.referenceKind.INVOKEINTERFACE,
+                cp;
+
+            //This should fail.
+            enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
+            makeMethodHandle(referenceKind, 6);
+            expect(getCp).toThrow();
+            reset();
+
+            //This should fail.
+            enhancedMakeMethodref(className, methodName, methodDesc, 1);
+            makeMethodHandle(referenceKind, 6);
+            expect(getCp).toThrow();
+            reset();
+
+            //This should pass.
+            enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+            makeMethodHandle(referenceKind, 6);
+            cp = getCp();
+            testMethodHandle(cp, 7, referenceKind, 7);
+            reset();
+          }
+        );
+
+        it("should ensure that the reference item for invoke[Virtual|Static|Special] is not <init> or <clinit>",
+          function() {
+            var className = "Blargh",
+                methodNames = ["<init>", "<clinit>"],
+                methodDesc = "()V",
+                referenceKinds = [Enum.referenceKind.INVOKEVIRTUAL,
+                                  Enum.referenceKind.INVOKESTATIC,
+                                  Enum.referenceKind.INVOKESPECIAL];
+
+            referenceKinds.forEach(function(referenceKind) {
+              methodNames.forEach(function(methodName) {
+                //These should fail.
+                enhancedMakeMethodref(className, methodName, methodDesc, 1);
+                makeMethodHandle(referenceKind, 6);
+                expect(getCp).toThrow();
+                reset();
+              });
+            });
+          }
+        );
+
+        it("should ensure that the reference item for invokeInterface is not <init> or <clinit>",
+          function() {
+            var className = "Blargh",
+                methodNames = ["<init>", "<clinit>"],
+                methodDesc = "()V",
+                referenceKind = Enum.referenceKind.INVOKEINTERFACE;
+
+            methodNames.forEach(function(methodName) {
+              //These should fail.
+              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              expect(getCp).toThrow();
+              reset();
+            });
+          }
+        );
+
+        it("should ensure that the reference item for newInvokeSpecial is a MethodRef for <init>",
+          function() {
+            var className = "Blargh",
+                goodMethodName = "<init>",
+                badMethodNames = ["<clinit>", "someMethod"],
+                methodDesc = "()V",
+                referenceKind = Enum.referenceKind.NEWINVOKESPECIAL,
+                cp;
+
+            enhancedMakeMethodref(className, goodMethodName, methodDesc, 1);
+            makeMethodHandle(referenceKind, 6);
+            cp = getCp();
+            testMethodHandle(cp, 7, referenceKind, 6);
+            reset();
+
+            //These should fail (<init> should be a MethodRef)
+            enhancedMakeInterfaceMethodref(className, goodMethodName, methodDesc, 1);
+            makeMethodHandle(referenceKind, 6);
+            expect(getCp).toThrow();
+            reset();
+
+            enhancedMakeFieldref(className, goodMethodName, methodDesc, 1);
+            makeMethodHandle(referenceKind, 6);
+            expect(getCp).toThrow();
+            reset();
+
+            badMethodNames.forEach(function(methodName) {
+              //These should fail.
+              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              makeMethodHandle(referenceKind, 6);
+              expect(getCp).toThrow();
+              reset();
+            });
+          }
+        );
+
+        it("should not allow invalid / unrecognized reference types",
+          function() {
+            var badIndices = [sampleIntIdx,
+                            sampleFloatIdx,
+                            sampleLongIdx,
+                            sampleDoubleIdx,
+                            sampleStringIdx,
+                            sampleFieldrefNatIdx,
+                            sampleMethodrefNatIdx,
+                            sampleInterfaceMethodrefNatIdx,
+                            sampleClassIdx,
+                            sampleFieldrefIdx,
+                            sampleMethodrefIdx,
+                            sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
+                            50]; //Out of range
+
+            Enum.referenceKinds.forEach(function(referenceKind) {
+              badIndices.forEach(function(idx) {
+                sampleCp(1);
+                makeMethodHandle(referenceKind, idx);
+                expect(getCp).toThrow();
+
+                reset();
+              });
+            });
+          }
+        );
       }
     );
 
     describe("ConstantPool: CONSTANT_MethodType_info (§4.4.9)",
       function() {
         beforeEach(reset);
+        
+        it("should accept a MethodType constant pool item",
+          function() {
+            var descriptor = "()V", cp;
+            initCp(2);
+            makeUTF8(descriptor);
+            makeMethodType(1);
 
+            cp = getCp();
+            testMethodType(cp, 2, descriptor);
+            reset();
+
+            //Forward reference.
+            initCp(2);
+            makeMethodType(2);
+            makeUTF8(descriptor);
+
+            cp = getCp();
+            testMethodType(cp, 1, descriptor);
+          }
+        );
+
+        /**
+         * We only want to verify that it is using our method descriptor
+         * validator method, which is thoroughly tested elsewhere.
+         */
+        it("should only accept valid method descriptors",
+          function() {
+            var badDesc = "B";
+            initCp(2);
+            makeUTF8(badDesc);
+            makeMethodType(1);
+
+            expect(getCp).toThrow();
+          }
+        );
+
+        it("should complain if the method descriptor index references a non-UTF8 constant pool item",
+          function() {
+            var badIndices = [sampleFloatIdx,
+                            sampleLongIdx,
+                            sampleDoubleIdx,
+                            sampleStringIdx,
+                            sampleFieldrefNatIdx,
+                            sampleMethodrefNatIdx,
+                            sampleInterfaceMethodrefNatIdx,
+                            sampleClassIdx,
+                            sampleFieldrefIdx,
+                            sampleMethodrefIdx,
+                            sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
+                            50]; //Out of range
+
+            badIndices.forEach(function(idx) {
+              sampleCp(1);
+              makeMethodType(idx);
+              expect(getCp).toThrow();
+
+              reset();
+            });
+          }
+        );
       }
     );
 
     describe("ConstantPool: CONSTANT_InvokeDynamic_info (§4.4.10)",
       function() {
+        beforeEach(reset);
 
+         it("should accept an InvokeDynamic struct",
+          function() {
+            var bootstrapIdx = 2,
+                name = "someMethod",
+                desc = "()V",
+                cp;
+
+            initCp(4);
+            makeUTF8(name);
+            makeUTF8(desc);
+            makeNat(1, 2);
+            makeInvokeDynamic(bootstrapIdx, 3);
+            
+            cp = getCp();
+            testInvokeDynamic(cp, 4, bootstrapIdx, 3);
+            reset();
+
+            //Forward reference
+            initCp(4);
+            makeUTF8(name);
+            makeUTF8(desc);
+            makeInvokeDynamic(bootstrapIdx, 4);
+            makeNat(1, 2);
+            
+            cp = getCp();
+            testInvokeDynamic(cp, 3, bootstrapIdx, 4);
+            reset();
+          }
+        );
+
+        it("should verify that its NameAndType reference has a valid method descriptor",
+          function() {
+            var bootstrapIdx = 2,
+                name = "someMethod",
+                desc = "C";
+
+            initCp(4);
+            makeUTF8(name);
+            makeUTF8(desc);
+            makeNat(1, 2);
+            makeInvokeDynamic(bootstrapIdx, 3);
+
+            expect(getCp).toThrow();
+          }
+        );
+
+        it("should verify that its NameAndType reference is, in fact, a NameAndType constant pool item",
+          function() {
+            var badIndices = [sampleUTF8Idx,
+                            sampleIntIdx,
+                            sampleFloatIdx,
+                            sampleLongIdx,
+                            sampleDoubleIdx,
+                            sampleStringIdx,
+                            sampleClassIdx,
+                            sampleFieldrefIdx,
+                            sampleMethodrefIdx,
+                            sampleInterfaceMethodrefIdx,
+                            sampleMethodHandleIdx,
+                            sampleMethodTypeIdx,
+                            sampleInvokeDynamicIdx,
+                            50]; //Out of range.
+
+            badIndices.forEach(function(idx) {
+              sampleCp(1);
+              makeInvokeDynamic(2, idx);
+              expect(getCp).toThrow();
+              reset();
+            });
+          }
+        );
       }
     );
-    /**
-     * TODO(jvilk)
-     * Need to add tests for invalid CP references (CP # out of range)
-     * Need to add:
-     *
-     * CONSTANT_methodhandle_info
-     * CONSTANT_methodtype_info
-     * CONSTANT_invokedynamic_info
-     *
-     * Make helper function for type.
-     * Make tests for type.
-     * Add type to SampleCP.
-     * Add tests for type in SampleCP test suite.
-     * Add type retroactively to each test that uses the samplecp.
-     */
 
     describe("ConstantPool: Invalid Types",
       function() {
+        beforeEach(reset);
 
         it("should complain if it receives an unrecognized constant pool item",
           function() {
             initCp(1);
             cr.addField("u1", 100, "tag"); //Invalid CP item.
             expect(getCp).toThrow();
-
             reset();
+
             initCp(2);
             makeUTF8("lol");
             cr.addField("u1", 100, "tag"); //Invalid CP item.
             expect(getCp).toThrow();
-
             reset();
+
             initCp(2);
             cr.addField("u1", 100, "tag"); //Invalid CP item.
             makeUTF8("lol");

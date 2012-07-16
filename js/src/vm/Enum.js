@@ -54,22 +54,25 @@ define(
       LONG : 5,
       DOUBLE : 6,
       NAMEANDTYPE : 12,
-      UTF8 : 1
+      UTF8 : 1,
+      METHODHANDLE : 15,
+      METHODTYPE : 16,
+      INVOKEDYNAMIC : 18
     };
 
     /**
      * See Table 5.1: Bytecode Behaviors for Method Handles
      */
-    Enum.bytecodeBehaviors = {
-      getField : 1,
-      getStatic : 2,
-      putField : 3,
-      putStatic : 4,
-      invokeVirtual : 5,
-      invokeStatic : 6,
-      invokeSpecial : 7,
-      newInvokeSpecial : 8,
-      invokeInterface : 9
+    Enum.referenceKind = {
+      GETFIELD : 1,
+      GETSTATIC : 2,
+      PUTFIELD : 3,
+      PUTSTATIC : 4,
+      INVOKEVIRTUAL : 5,
+      INVOKESTATIC : 6,
+      INVOKESPECIAL : 7,
+      NEWINVOKESPECIAL : 8,
+      INVOKEINTERFACE : 9
     };
 
     /**
