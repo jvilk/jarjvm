@@ -1,5 +1,5 @@
 define(['util/Util', 'lib/Deflate', 'vm/Primitives'],
-  function(Util, Utf8Translator) {
+  function(Util, Utf8Translator, Primitives) {
     /**
      * Used to read a Java Class.
      */

@@ -27,7 +27,7 @@ define(['vm/Attributes/ClassEntry', 'vm/Attributes/CodeAttribute', 'vm/Attribute
           case "SourceFile":
             Util.assert(attributeLength === 2);
             var sourceFileIndex = jcr.getUintField(2);
-            var sourceFile = constantPool.get(sourceFileIndex);
+            var sourceFile = constantPool.getUTF8Info(sourceFileIndex);
             attributes[i] = new SourceFileAttribute(attributeName, attributeLength, sourceFile);
             break;
           case "ConstantValue":

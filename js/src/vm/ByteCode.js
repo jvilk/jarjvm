@@ -432,7 +432,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     };
     /**Get anything from an array reference **/
     ByteCode.loadFromArray = function() {
-      var arrayIndex = ByteCode.pop().value();
+      var arrayIndex = ByteCode.pop().value;
       //Assumed Integer Primative
       var array = ByteCode.pop();
       if(array === null) {
@@ -448,7 +448,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     /**Store anything into an array reference**/
     ByteCode.storeToArray = function() {
       var value = ByteCode.pop();
-      var arrayIndex = ByteCode.pop().value();
+      var arrayIndex = ByteCode.pop().value;
       //Get the int from the Primitive class
       var array = ByteCode.pop();
       if( array === null) {
@@ -539,7 +539,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
 
       var result = initialValue;
 
-      if(isNaN(number1.value()) || isNaN(number2.value())) {
+      if(isNaN(number1.value) || isNaN(number2.value)) {
         //Do nothing.
       } else {
         if(number1 > number2) {
@@ -566,7 +566,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var number2 = ByteCode.pop();
       var number1 = ByteCode.pop();
 
-      var shift = number2.value() & hexShiftBy;
+      var shift = number2.value & hexShiftBy;
       //Get the lower 5 bits of number 2
       ByteCode.push(number1.shiftLeft(shift));
     };
@@ -575,7 +575,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var number2 = ByteCode.pop();
       var number1 = ByteCode.pop();
 
-      var shift = number2.value() & hexShiftBy;
+      var shift = number2.value & hexShiftBy;
       ByteCode.push(number1.shiftRight(shift));
     };
 
@@ -583,7 +583,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var number2 = ByteCode.pop();
       var number1 = ByteCode.pop();
 
-      var shift = number2.value() & hexShiftBy;
+      var shift = number2.value & hexShiftBy;
       ByteCode.push(number1.shiftRightUnsigned(shift));
     };
 
@@ -657,7 +657,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       ByteCode.loadFromLocal(3);
     };
     ByteCode.instrs[ByteCode.codes.anewarray] = function(className) {
-      var arrayLength = ByteCode.pop().value();
+      var arrayLength = ByteCode.pop().value;
       //Get the integer value
       if(arrayLength < 0) {
         ByteCode.throwException("NegativeArraySizeException");
@@ -1004,7 +1004,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     };
     ByteCode.instrs[ByteCode.codes.getstatic] = function(field) {
       var ref = field.getRef();
-      ByteCode.push(ref.value());
+      ByteCode.push(ref.value);
     };
     ByteCode.instrs[ByteCode.codes.goto_] = function(offset) {
       ByteCode.branch(3, offset);
@@ -1076,7 +1076,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() === value2.value()) {
+      if(value1.value === value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1085,7 +1085,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() != value2.value()) {
+      if(value1.value != value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1094,7 +1094,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() === value2.value()) {
+      if(value1.value === value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1103,7 +1103,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() != value2.value()) {
+      if(value1.value != value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1112,7 +1112,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() < value2.value()) {
+      if(value1.value < value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1121,7 +1121,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() <= value2.value()) {
+      if(value1.value <= value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1130,7 +1130,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() > value2.value()) {
+      if(value1.value > value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1139,7 +1139,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var value2 = ByteCode.pop();
       var value1 = ByteCode.pop();
 
-      if(value1.value() >= value2.value()) {
+      if(value1.value >= value2.value) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1147,7 +1147,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     ByteCode.instrs[ByteCode.codes.ifeq] = function(offset) {
       var number = ByteCode.pop();
 
-      if(number.value() === 0) {
+      if(number.value === 0) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1155,7 +1155,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     ByteCode.instrs[ByteCode.codes.ifne] = function(offset) {
       var number = ByteCode.pop();
 
-      if(number.value() !== 0) {
+      if(number.value !== 0) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1163,14 +1163,14 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     ByteCode.instrs[ByteCode.codes.iflt] = function(offset) {
       var number = ByteCode.pop();
 
-      if(number.value() < 0) {
+      if(number.value < 0) {
         ByteCode.branch(3, offset);
       }
     };
     ByteCode.instrs[ByteCode.codes.ifle] = function(offset) {
       var number = ByteCode.pop();
 
-      if(number.value() <= 0) {
+      if(number.value <= 0) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1178,7 +1178,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     ByteCode.instrs[ByteCode.codes.ifgt] = function(offset) {
       var number = ByteCode.pop();
 
-      if(number.value() > 0) {
+      if(number.value > 0) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1186,7 +1186,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     ByteCode.instrs[ByteCode.codes.ifge] = function(offset) {
       var number = ByteCode.pop();
 
-      if(number.value() >= 0) {
+      if(number.value >= 0) {
         ByteCode.branch(3, offset);
         return;
       }
@@ -1208,7 +1208,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     };
     ByteCode.instrs[ByteCode.codes.iinc] = function(index, constant) {
       var currentValue = ByteCode.getLocal(index);
-      ByteCode.setLocal(index, Primitives.getInteger(currentValue.value() + constant));
+      ByteCode.setLocal(index, Primitives.getInteger(currentValue.value + constant));
     };
     ByteCode.instrs[ByteCode.codes.iload] = function(index) {
       ByteCode.loadFromLocal(index);
@@ -1420,15 +1420,15 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     };
     ByteCode.instrs[ByteCode.codes.ldc] = function(constant) {
       if(constant.getTag() === Enum.constantPoolTag.INTEGER) {
-        ByteCode.push(constant.value());
+        ByteCode.push(constant.value);
       }
       if(constant.getTag() === Enum.constantPoolTag.FLOAT) {
-        ByteCode.push(constant.value());
+        ByteCode.push(constant.value);
       }
       if(constant.getTag() === Enum.constantPoolTag.STRING) {
         //ConstantPoolInfo
         // /alert(constant.string);
-        ByteCode.push(Util.getJavaString(constant.value()));
+        ByteCode.push(Util.getJavaString(constant.value));
       }
       if(constant.getTag() === Enum.constantPoolTag.CLASS) {
         ByteCode.push(Util.getJavaString(constant.getName()));
@@ -1436,16 +1436,16 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     };
     ByteCode.instrs[ByteCode.codes.ldc_w] = function(constant) {
       if(constant.getTag() === Enum.constantPoolTag.INTEGER) {
-        ByteCode.push(constant.value());
+        ByteCode.push(constant.value);
         return;
       }
       if(constant.getTag() === Enum.constantPoolTag.FLOAT) {
-        ByteCode.push(constant.value());
+        ByteCode.push(constant.value);
         return;
       }
       if(constant.getTag() === Enum.constantPoolTag.STRING) {
         //ConstantPoolInfo
-        ByteCode.push(Util.getJavaString(constant.value()));
+        ByteCode.push(Util.getJavaString(constant.value));
         return;
       }
       if(constant.getTag() === Enum.constantPoolTag.CLASS) {
@@ -1455,11 +1455,11 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     };
     ByteCode.instrs[ByteCode.codes.ldc2_w] = function(constant) {
       if(constant.getTag() === Enum.constantPoolTag.LONG) {
-        ByteCode.push(constant.value());
+        ByteCode.push(constant.value);
         return;
       }
       if(constant.getTag() === Enum.constantPoolTag.DOUBLE) {
-        ByteCode.push(constant.value());
+        ByteCode.push(constant.value);
         return;
       }
     };
@@ -1488,7 +1488,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       ByteCode.negate();
     };
     ByteCode.instrs[ByteCode.codes.lookupswitch] = function(length, default_, npairs, matches) {
-      var key = ByteCode.pop().value();
+      var key = ByteCode.pop().value;
 
       //Set the offset to default, if a match is found it will be replaced.
       var offset = default_;
@@ -1562,7 +1562,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
     };
     ByteCode.instrs[ByteCode.codes.newarray] = function(atype) {
       //atype might be needed not sure
-      var count = ByteCode.pop().value();
+      var count = ByteCode.pop().value;
 
       if(count < 0) {
         ByteCode.throwException("NegativeArraySizeException");
@@ -1605,7 +1605,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       var newPC = ByteCode.getLocal(index);
 
       //'Jump' :)
-      JVM.getExecutingThread().setPC(newPC.value());
+      JVM.getExecutingThread().setPC(newPC.value);
 
       //Do jump
     };
@@ -1628,7 +1628,7 @@ define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray',
       ByteCode.push(value2);
     };
     ByteCode.instrs[ByteCode.codes.tableswitch] = function(length, default_, low, high, offsets) {
-      var index = ByteCode.pop().value();
+      var index = ByteCode.pop().value;
       //Value of an integer
 
       //Set the offset to default, if the index is within the bounds get the offset
