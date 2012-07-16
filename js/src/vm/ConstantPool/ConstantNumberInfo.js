@@ -3,8 +3,12 @@ define(['util/Util', 'vm/Enum'],
     //Used for INTEGER OR FLOATING REFERENCES
     function ConstantNumberInfo(refType, value) {
       this.tag = refType;
-      this.value = value;
+      this._value = value;
     }
+
+    ConstantNumberInfo.prototype.getValue = function() {
+      return this._value;
+    };
 
     ConstantNumberInfo.prototype.toString = function() {
       var output = "";

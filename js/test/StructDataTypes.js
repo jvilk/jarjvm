@@ -9,7 +9,7 @@ define(
       'i1': 1,
       'i2': 2,
       'i4': 4,
-      'i8': 8,
+      'long': 8,
       'utf8': 0,
       'float': 4,
       'double': 8

@@ -1,5 +1,5 @@
-define(
-  function() {
+define(['vm/Enum'],
+  function(Enum) {
     /**
      * This file should have objects that are used to represent actual java instantiations
      */
@@ -8,7 +8,7 @@ define(
       this.classInfo = classInfo;
       //There are three basic types of data in the JVM: Objects, primitives, and
       //arrays. I'm an object.
-      this.dataType = Data.type.OBJECT;
+      this.dataType = Enum.dataType.OBJECT;
       
       /**
        * Array of fields.

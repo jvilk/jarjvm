@@ -292,7 +292,7 @@ define(['util/Util', 'vm/JavaArray', 'vm/Enum', 'vm/MethodRun'],
       var mainMethod = classInfo.getMethodAssert("main", "([Ljava/lang/String;)V");
       
       var stringClass = JVM.getClass("java/lang/String");
-      var args = new JavaArray(Data.type.OBJECT, stringClass, 1, arguments.length-1);
+      var args = new JavaArray(Enum.dataType.OBJECT, stringClass, 1, arguments.length-1);
       
       for (var i = 1; i < arguments.length; i++)
       {

@@ -70,6 +70,15 @@ define(['../test/StructDataTypes.js', 'util/Util'],
     }
 
     /**
+     * Static method.
+     * Returns an already-created struct with the given name.
+     */
+    Struct.getStruct = function(name) {
+      Util.assert(name in structs);
+      return structs[name];
+    };
+
+    /**
      * Clears all previously-defined structs. Used for unit tests on this module.
      */
     Struct.prototype._clearStructs = function() {
@@ -131,37 +140,16 @@ define(['../test/StructDataTypes.js', 'util/Util'],
       for (i = 0; i < arguments.length; i++) {
         argument = arguments[i];
         type = this.getMemberType(i);
-        switch(typeof argument) {
-          case "number":
-            //Must be a numeric type
-            Util.assert(type in StructDataTypes && type !== 'utf8');
-            //Unsigned ints must be positive.
-            if (type.charAt(0) === 'u') {
-              Util.assert(argument >= 0);
-            }
 
-            //Floating point numbers.
-            if (argument - Math.floor(argument) !== 0) {
-              Util.assert(type === 'float' || type === 'double');
-            }
-
-            break;
-          case "boolean":
-            Util.assert(type === 'u1');
-            argument = argument === true ? 1 : 0;
-            break;
-          case "string":
-            Util.assert(type === 'utf8');
-            break;
-          case "object":
-            Util.assert(argument.type.getName() === type);
-            break;
-          //This should never be called with null or undefined.
-          case "null":
-          case "undefined":
-            throw "Struct.create called with a null or undefined value.";
+        //Booleans are never stored as 'true'/'false' in
+        //the class file; they are represented as 0/1.
+        //However, we accept them in the Struct creator.
+        if (typeof argument === "boolean") {
+          Util.assert(type === 'u1');
+          argument = argument ? 1 : 0;
         }
 
+        Util.typeValidation(type, argument);
         values.push(argument);
       }
 
@@ -181,7 +169,7 @@ define(['../test/StructDataTypes.js', 'util/Util'],
       //Prepended to names.
       name = name === undefined ? '' : name + ".";
 
-      for (j = 0; j < this.values; j++) {
+      for (j = 0; j < this.values.length; j++) {
         val = this.values[j];
         type = this.type.getMemberType(j);
         memberName = name + this.type.getName(j);

@@ -3,7 +3,7 @@ define(['util/Util'],
     //Used for LONGS and DOUBLES
     function ConstantBigNumberInfo(refType, value) {
       this.tag = refType;
-      this.value = value;
+      this._value = value;
     }
 
     ConstantBigNumberInfo.prototype.toString = function() {
@@ -22,6 +22,10 @@ define(['util/Util'],
       }
       
       return output + this.value;
+    };
+
+    ConstantBigNumberInfo.prototype.getValue = function() {
+      return this._value;
     };
 
     ConstantBigNumberInfo.prototype.getTag = function() {

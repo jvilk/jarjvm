@@ -24,6 +24,7 @@ define(['vm/Enum', 'vm/ConstantPool/ConstantPool', 'vm/ConstantPool/ConstantBigN
       var count = jcr.getUintField(2);
       var tag, bytes, name_index;
       var cpItems = [];
+
       //cp_info constant_pool[constant_pool_count-1];
       //NOTE: Index 0 of the constant pool is reserved for use by the JVM, and is not
       //in the class file.
@@ -51,19 +52,17 @@ define(['vm/Enum', 'vm/ConstantPool/ConstantPool', 'vm/ConstantPool/ConstantBigN
             cpItems[i] = new ConstantNumberInfo(tag, bytes);
             break;
           case Enum.constantPoolTag.FLOAT:
-            bytes = Primitives.getFloat(jcr.getFloatField(4));
+            bytes = Primitives.getFloat(jcr.getFloatField());
             cpItems[i] = new ConstantNumberInfo(tag, bytes);
             break;
           case Enum.constantPoolTag.LONG:
-            var high = jcr.getUintField(4);
-            var low = jcr.getUintField(4);
-            var long_value = Primitives.getLong(low, high);
+            var long_value = jcr.getLongField();
             cpItems[i] = new ConstantBigNumberInfo(tag, long_value);
             //8 byte constants take up two slots.
             i++;
             break;
           case Enum.constantPoolTag.DOUBLE:
-            var double_field = Primitives.getDouble(jcr.getDoubleField(8));
+            var double_field = Primitives.getDouble(jcr.getDoubleField());
             cpItems[i] = new ConstantBigNumberInfo(tag, double_field);
             //8 byte constants take up two slots.
             i++;
@@ -76,7 +75,7 @@ define(['vm/Enum', 'vm/ConstantPool/ConstantPool', 'vm/ConstantPool/ConstantBigN
           case Enum.constantPoolTag.UTF8:
             var length = jcr.getUintField(2);
             var string = jcr.getUTF8Field(length);
-            cpItems[i] = new ConstantUTF8Info(length, string);
+            cpItems[i] = new ConstantUTF8Info(string);
             break;
           default:
             JVM.printError("ERROR: Unable to determine the 'tag' element of a cp_info struct: " + tag + ".");
@@ -84,8 +83,13 @@ define(['vm/Enum', 'vm/ConstantPool/ConstantPool', 'vm/ConstantPool/ConstantBigN
         }
       }
 
+      //Ensure that all constant pool items were parsed.
+      //Note that this assertion can fail if the CP length is 1 less
+      //than intended, and the last item is a double / long.
+      Util.assert(i === count);
+
       //Create the constant pool.
-      return new ConstantPool(cpItems);
+      return new ConstantPool(cpItems, count);
     };
 
     return ConstantPoolFactory;

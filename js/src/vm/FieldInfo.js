@@ -130,7 +130,7 @@ define(['vm/Primitives', 'util/Util', 'vm/FieldDescriptor', 'vm/Enum'],
         var constVal = this.constantValueAttribute;
         if (constVal.getTag() === Enum.constantPoolTag.STRING)
         {
-          this.value = Util.getJavaString(constVal.string);
+          this.value = Util.getJavaString(constVal.getValue());
         }
         else
         {

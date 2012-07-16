@@ -1,5 +1,5 @@
-define(['util/Util'],
-  function(Util) {
+define(['util/Util', 'vm/Enum'],
+  function(Util, Enum) {
     var PrimitiveMaker = {};
     PrimitiveMaker.getInteger = function(value) { return new Integer(value); };
     PrimitiveMaker.getBool = function(value) { return new Bool(value); };
@@ -17,7 +17,7 @@ define(['util/Util'],
     }
 
     function Integer(value){
-      require('util/Util').inherits(this, Primitive, Data.type.INTEGER, value & 0xFFFFFFFF); //Whatever the value is make it a 32bit signed int
+      require('util/Util').inherits(this, Primitive, Enum.dataType.INTEGER, value & 0xFFFFFFFF); //Whatever the value is make it a 32bit signed int
     }
 
     /**Arithmetic **/
@@ -104,7 +104,7 @@ define(['util/Util'],
     };
 
     function Byte(value){
-      require('util/Util').inherits(this, Primitive, Data.type.BYTE, value & 0xFF);
+      require('util/Util').inherits(this, Primitive, Enum.dataType.BYTE, value & 0xFF);
     }
 
     Byte.prototype.add = function(otherPrimitive){
@@ -193,7 +193,7 @@ define(['util/Util'],
     };
 
     function Bool(value){
-      require('util/Util').inherits(this, Primitive, Data.type.BOOLEAN, value & 0x1);
+      require('util/Util').inherits(this, Primitive, Enum.dataType.BOOLEAN, value & 0x1);
     }
 
     Bool.prototype.add = function(otherPrimitive){
@@ -278,7 +278,7 @@ define(['util/Util'],
     };
 
     function Char(value){
-      require('util/Util').inherits(this, Primitive, Data.type.CHAR, value & 0xFF);
+      require('util/Util').inherits(this, Primitive, Enum.dataType.CHAR, value & 0xFF);
     }
 
     Char.prototype.add = function(otherPrimitive){
@@ -364,7 +364,7 @@ define(['util/Util'],
     };
 
     function Double(value){
-      require('util/Util').inherits(this, Primitive, Data.type.DOUBLE, value);
+      require('util/Util').inherits(this, Primitive, Enum.dataType.DOUBLE, value);
     }
 
     Double.prototype.add = function(otherPrimitive){
@@ -451,7 +451,7 @@ define(['util/Util'],
     };
 
     function Float(value){
-      require('util/Util').inherits(this, Primitive, Data.type.FLOAT, value);
+      require('util/Util').inherits(this, Primitive, Enum.dataType.FLOAT, value);
     }
 
     Float.prototype.add = function(otherPrimitive){
@@ -1369,7 +1369,7 @@ define(['util/Util'],
     };
 
     function Short(value){
-      require('util/Util').inherits(this, Primitive, Data.type.SHORT, value & 0xFFFF);
+      require('util/Util').inherits(this, Primitive, Enum.dataType.SHORT, value & 0xFFFF);
     }
 
     Short.prototype.add = function(otherPrimitive){

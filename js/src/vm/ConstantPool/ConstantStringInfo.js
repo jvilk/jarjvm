@@ -7,15 +7,19 @@ define(['util/Util', 'vm/Enum'],
 
     //Resolve all references to other constant pool objects.
     ConstantStringInfo.prototype.resolveReferences = function(constantPool) {
-      this.string = constantPool.getUTF8Info(this.stringIndex);
+      this._string = constantPool.getUTF8Info(this.stringIndex);
     };
     
-    ConstantStringInfo.prototype.toString = function() {
-      return "string " + this.string;
-    };
-
     ConstantStringInfo.prototype.getTag = function() {
       return Enum.constantPoolTag.STRING;
+    };
+
+    ConstantStringInfo.prototype.getString = function() {
+      return this._string;
+    };
+
+    ConstantStringInfo.prototype.toString = function() {
+      return "string " + this.getString();
     };
 
     return ConstantStringInfo;

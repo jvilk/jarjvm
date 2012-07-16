@@ -15,13 +15,14 @@
   <!-- ... -->
 
   <script type="text/javascript">
+    'use strict';
 
     require.config({
       baseUrl: '../src'
     });
 
     require([
-      '../test/StructTest.spec'
+      '../test/Struct.spec', '../test/MockJavaClassReader.spec', '../test/ConstantPoolFactory.spec'
     ],
       function() {
         $(function() {

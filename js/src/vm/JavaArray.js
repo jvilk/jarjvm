@@ -1,9 +1,9 @@
-define(
-  function() {
+define(['vm/Enum'],
+  function(Enum) {
     function JavaArray(elementType, elementClass, dimensions, length){
       this.elementType = elementType;
       this.elementClass = elementClass;
-      this.dataType = Data.type.ARRAY;
+      this.dataType = Enum.dataType.ARRAY;
       this.dimensions = dimensions;
       this.length = length;
       this.array = new Array(length);
@@ -28,7 +28,7 @@ define(
       var descElementClassName = classDescriptor.slice(this.dimensions);
       
       //It's a primitive array.
-      if (this.elementType != Data.type.OBJECT) {
+      if (this.elementType != Enum.dataType.OBJECT) {
         return descElementClassName === this.elementType;
       }
       
@@ -96,7 +96,7 @@ define(
     JavaArray.prototype.toString = function() {
       var type = this.elementType;
       
-      if (this.elementType === Data.type.OBJECT)
+      if (this.elementType === Enum.dataType.OBJECT)
         type = this.elementClass.thisClassName;
       
       var arrayPart = "";

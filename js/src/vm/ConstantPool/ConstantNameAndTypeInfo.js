@@ -7,11 +7,22 @@ define(['util/Util', 'vm/Enum'],
 
     //Resolve all references to other constant pool objects.
     ConstantNameAndTypeInfo.prototype.resolveReferences = function(constantPool) {
-      this.name = constantPool.getUTF8Info(this.nameIndex);
+      this._name = constantPool.getUTF8Info(this.nameIndex);
       
-      this.descriptor = constantPool.getUTF8Info(this.descriptorIndex);
+      //Name must be either <init>, OR a field / method.
+      //
+
+      this._descriptor = constantPool.getUTF8Info(this.descriptorIndex);
     };
     
+    ConstantNameAndTypeInfo.prototype.getName = function() {
+      return this._name;
+    };
+
+    ConstantNameAndTypeInfo.prototype.getDescriptor = function() {
+      return this._descriptor;
+    };
+
     ConstantNameAndTypeInfo.prototype.toString = function() {
       return "NameAndTypeInfo" + this.name + " " + this.descriptor;
     };

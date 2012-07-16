@@ -1,5 +1,5 @@
-define(['../test/Struct.js', '../test/StructDataTypes'],
-  function(Struct, StructDataTypes) {
+define(['../test/Struct.js', '../test/StructDataTypes', '../test/MockJavaClassReader', 'vm/Primitives'],
+  function(Struct, StructDataTypes, MockJavaClassReader, Primitives) {
     var _id = 0;
     var uniqueID = function() {
       return "struct" + _id++;
@@ -29,7 +29,7 @@ define(['../test/Struct.js', '../test/StructDataTypes'],
     };
 
     var validateComplexStruct = function(types, values) {
-      var i, desc = '', struct_type, struct;
+      var i, desc = '', struct_type, struct, retval;
       expect(types.length).toBe(values.length);
 
       for (i = 0; i < types.length; i++) {
@@ -48,10 +48,12 @@ define(['../test/Struct.js', '../test/StructDataTypes'],
           expect(struct.values[i]).toBe(values[i]);
         }
       }
+
+      return [struct_type, struct];
     };
 
     var validateSimpleStruct = function(type, value) {
-      validateComplexStruct([type], [value]);
+      return validateComplexStruct([type], [value]);
     };
 
     var acceptValuesForTypes = function(types, values) {
@@ -78,13 +80,13 @@ define(['../test/Struct.js', '../test/StructDataTypes'],
           Struct.prototype._clearStructs();
         });
 
-        it ("should complain about unnamed structs", 
+        it ("should complain about unnamed structs",
           function() {
             rejectStruct('', 'u2 some_member');
           }
         );
 
-        it ("should complain about structs with no members", 
+        it ("should complain about structs with no members",
           function() {
             rejectStruct(uniqueID(), '');
           }
@@ -275,13 +277,13 @@ define(['../test/Struct.js', '../test/StructDataTypes'],
 
         it("should reject floating point, strings, and booleans for signed values",
           function() {
-            rejectValuesForTypes(['i1', 'i2', 'i4', 'i8'], [1.1, '', 'hey', false, true]);
+            rejectValuesForTypes(['i1', 'i2', 'i4', 'long'], [1.1, '', 'hey', false, true]);
           }
         );
 
         it("should accept both positive and negative signed numbers",
           function() {
-            acceptValuesForTypes(['i1', 'i2', 'i4', 'i8'], [0, -1, 1, 100, -100]);
+            acceptValuesForTypes(['i1', 'i2', 'i4', 'long'], [0, -1, 1, 100, -100]);
           }
         );
 
@@ -303,7 +305,6 @@ define(['../test/Struct.js', '../test/StructDataTypes'],
           }
         );
 
-        //Multiple of same type.
         it("should properly create structs with multiple types",
           function() {
             validateComplexStruct(['u1', 'u1'], [true, false]);
@@ -312,14 +313,30 @@ define(['../test/Struct.js', '../test/StructDataTypes'],
           }
         );
 
-        //Nested structs.
-        it("should allow for nested structures",
+        it("should properly create structs with nested structures",
           function() {
-            //Something like:
-            //['blah', 'blah', [blah, blah]]
-            //Method that recurses and returns struct and instantiation?
+            var retval = validateComplexStruct(['u1', 'u1'], [true, false]);
+            validateComplexStruct([retval[0].getName(), 'utf8', retval[0].getName()], [retval[1], 'hey', retval[1]]);
           }
         );
+
+        /** MockJavaClassReader Tests **/
+
+        it("should properly add simple structs to a MockJavaClassReader",
+          function() {
+            var retval = validateSimpleStruct('u2', 23),
+                classReader = new MockJavaClassReader();
+            retval[1].addToClassReader(classReader);
+            expect(classReader.getUintField(2)).toBe(23);
+            //Offset
+            //Etc.
+          }
+        );
+
+        //Add simple structs to MockClassReader.
+        //Add struct w/ multiple fields to MockClassReader.
+        // --> Remember utf8 special case.
+        //Add struct w/ nested members to MockClassReader.
       }
     );
   }

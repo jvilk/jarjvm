@@ -19,8 +19,7 @@ define(['vm/Attributes/ClassEntry', 'vm/Attributes/CodeAttribute', 'vm/Attribute
       var attributes = [];
       for (var i = 0; i < attributesCount; i++)
       {
-        var attributeNameIndex = jcr.getUintField(2);
-        var attributeName = constantPool.getUTF8Info(attributeNameIndex);
+        var attributeName = constantPool.getUTF8Info(jcr.getUintField(2));
         var attributeLength = jcr.getUintField(4);
         
         //Switching on Strings? In MY JavaScript? It's more likely than you think...
@@ -28,7 +27,7 @@ define(['vm/Attributes/ClassEntry', 'vm/Attributes/CodeAttribute', 'vm/Attribute
           case "SourceFile":
             Util.assert(attributeLength === 2);
             var sourceFileIndex = jcr.getUintField(2);
-            var sourceFile = constantPool.getUTF8Info(sourceFileIndex);
+            var sourceFile = constantPool.get(sourceFileIndex);
             attributes[i] = new SourceFileAttribute(attributeName, attributeLength, sourceFile);
             break;
           case "ConstantValue":
@@ -84,8 +83,7 @@ define(['vm/Attributes/ClassEntry', 'vm/Attributes/CodeAttribute', 'vm/Attribute
         var innerClassInfo = constantPool.getClassInfo(innerClassInfoIndex);
         var outerClassInfoIndex = jcr.getUintField(2);
         var outerClassInfo = constantPool.getClassInfo(outerClassInfoIndex);
-        var innerNameIndex = jcr.getUintField(2);
-        var innerName = constantPool.getUTF8Info(innerNameIndex);
+        var innerName = constantPool.getUTF8Info(jcr.getUintField(2));
         var innerClassAccessFlags = jcr.getUintField(2);
         classes[i] = new ClassEntry(innerClassInfo, outerClassInfo, innerName, innerClassAccessFlags);
       }

@@ -1,5 +1,5 @@
-define(['util/Util'],
-  function(Util) {
+define(['util/Util', 'vm/Enum'],
+  function(Util, Enum) {
     /*
      * Frame implementation:
      *      push = push item into stack
@@ -19,7 +19,7 @@ define(['util/Util'],
       if (x !== null && x !== undefined)
       {
         Util.pushElement(x.toString());
-        if (x.dataType === Data.type.DOUBLE || x.dataType === Data.type.LONG)
+        if (x.dataType === Enum.dataType.DOUBLE || x.dataType === Enum.dataType.LONG)
         {
           Util.pushElement(x.toString());
         }
@@ -32,7 +32,7 @@ define(['util/Util'],
       
       this.stack.push(x);
       //JavaScript null = Java null. We don't want to check properties on a null value.
-      if (x !== null && x !== undefined && (x.dataType === Data.type.DOUBLE || x.dataType === Data.type.LONG))
+      if (x !== null && x !== undefined && (x.dataType === Enum.dataType.DOUBLE || x.dataType === Enum.dataType.LONG))
       {
         this.stack.push(x);
       }
@@ -59,7 +59,7 @@ define(['util/Util'],
     Frame.prototype.setLocal = function(index, value) {
       this.locals[index] = value;
       //JavaScript null = Java null. We don't want to check properties on a null value.
-      if (value !== null && value !== undefined && (value.dataType === Data.type.DOUBLE || value.dataType === Data.type.LONG)) {
+      if (value !== null && value !== undefined && (value.dataType === Enum.dataType.DOUBLE || value.dataType === Enum.dataType.LONG)) {
         this.locals[index+1] = value;
       }
     };

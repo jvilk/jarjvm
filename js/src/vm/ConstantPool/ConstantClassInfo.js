@@ -12,13 +12,19 @@ define(['util/Util', 'vm/Enum'],
       return Enum.constantPoolTag.CLASS;
     };
 
+    ConstantClassInfo.prototype.getName = function() {
+      return this._name;
+    };
+
     //Resolve all references to other constant pool objects.
     ConstantClassInfo.prototype.resolveReferences = function(constantPool) {
-      this.name = constantPool.getUTF8Info(this.nameIndex);
+      this._name = constantPool.getUTF8Info(this.nameIndex);
+
+      Util.checkIsValidClassOrInterfaceName(this._name);
     };
 
     ConstantClassInfo.prototype.toString = function() {
-      return "class " + this.name;
+      return "class " + this.getName();
     };
 
     return ConstantClassInfo;

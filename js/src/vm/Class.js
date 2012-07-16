@@ -31,6 +31,12 @@ define(['vm/ConstantPool/ConstantPool', 'vm/FieldInfo', 'vm/Method', 'util/Util'
       this.fields = fields;
       this.methods = methods;
       this.attributes = attributes;
+
+      /**
+       * TODO(jvilk): Perhaps 'verify' the ConstantPool after this,
+       * which would verify, clean up, and consolidate the bastard.
+       * (e.g. CONSTANT_String_info -> String objects)
+       */
     };
 
     /**

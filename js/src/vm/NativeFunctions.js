@@ -54,7 +54,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
         //JVM.debugPrint("Local at " + effectiveI + ": " + variable.value);
         methodArguments.push(variable);
         //methodArguments.push(frame.pop());
-        if (methodArguments[i] !== undefined && (methodArguments[i].dataType === Data.type.LONG || methodArguments[i].dataType === Data.type.DOUBLE))
+        if (methodArguments[i] !== undefined && (methodArguments[i].dataType === Enum.dataType.LONG || methodArguments[i].dataType === Enum.dataType.DOUBLE))
         {
           effectiveI++;
         }
@@ -103,7 +103,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(C)V", function(){
       var arrayOfArguments = NativeFunctions.getArguments("(C)V");
       var charToPrint = arrayOfArguments[0];
-      JVM.println(String.fromCharCode(charToPrint.value));
+      JVM.println(String.fromCharCode(charToPrint.value()));
       MethodRun.createReturn();
       }
     );
@@ -112,7 +112,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(I)V", function(){
       var arrayOfArguments = NativeFunctions.getArguments("(I)V");
       var intToPrint = arrayOfArguments[0];
-      JVM.println(intToPrint.value.toString());
+      JVM.println(intToPrint.value().toString());
       MethodRun.createReturn();
       }
     );
@@ -129,7 +129,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(D)V", function(){
       var arrayOfArguments = NativeFunctions.getArguments("(D)V");
       var doubleToPrint = arrayOfArguments[0];
-      JVM.println(doubleToPrint.value.toString());
+      JVM.println(doubleToPrint.value().toString());
       MethodRun.createReturn();
       }
     );
@@ -138,7 +138,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
     NativeFunctions.registerNativeFunction("java/io/PrintStream", "printStuff", "(F)V", function(){
       var arrayOfArguments = NativeFunctions.getArguments("(F)V");
       var floatToPrint = arrayOfArguments[0];
-      JVM.println(floatToPrint.value.toString());
+      JVM.println(floatToPrint.value().toString());
       MethodRun.createReturn();
       }
     );
@@ -151,7 +151,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
         if(arrayToPrint[i] === undefined){
           JVM.print(' ');
         }else{
-          JVM.print(String.fromCharCode(arrayToPrint[i].value));
+          JVM.print(String.fromCharCode(arrayToPrint[i].value()));
         }
         
         if(i != arrayToPrint.length - 1){
@@ -182,7 +182,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
       //Not sure if length or
       for (var i = 0; i < arrayToPrint.length; i++){
         if(arrayToPrint[i] !== undefined){
-          JVM.print(String.fromCharCode(arrayToPrint[i].value));
+          JVM.print(String.fromCharCode(arrayToPrint[i].value()));
         }
       }
       MethodRun.createReturn();
@@ -246,10 +246,10 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
     NativeFunctions.registerNativeFunction("java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V", function(){
         var arrayOfArguments = NativeFunctions.getArguments("(Ljava/lang/Object;ILjava/lang/Object;II)V");
         var srcArray = arrayOfArguments[0];
-        var srcPos = arrayOfArguments[1].value;
+        var srcPos = arrayOfArguments[1].value();
         var destArray = arrayOfArguments[2];
-        var destPos = arrayOfArguments[3].value;
-        var length = arrayOfArguments[4].value;
+        var destPos = arrayOfArguments[3].value();
+        var length = arrayOfArguments[4].value();
         //
         //If dest is null, then a NullPointerException is thrown.
         //If src is null, then a NullPointerException is thrown and the destination array is not modified.
@@ -328,7 +328,7 @@ define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
     NativeFunctions.registerNativeFunction("sun/reflect/Reflection", "getCallerClass", "(I)Ljava/lang/Class;", function(){
       var theArguments = NativeFunctions.getArguments("(I)Ljava/lang/Class;");
       
-      var numberOfFrames = theArguments[0].value;
+      var numberOfFrames = theArguments[0].value();
       var frameOfInterest = JVM.getExecutingThread().getStack().stack[JVM.getExecutingThread().getStack().length -1 - numberOfFrames];
       
       MethodRun.createReturn(frameOfInterest.methodInfo.classInfo); //is the class

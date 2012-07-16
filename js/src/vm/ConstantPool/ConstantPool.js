@@ -4,8 +4,11 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
      * Object for the entire constant pool for a class.
      *  * cpItems: Array of ConstantPoolInfo objects.
      */
-    function ConstantPool(cpItems) {
+    function ConstantPool(cpItems, length) {
+      var i;
+
       this.cpItems = cpItems;
+      this.length = length;
       
       //Constant pool items sometimes refer to other constant pool items, and
       //we cannot resolve these references until the constant pool is completely
@@ -20,6 +23,13 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
     }
 
     /**
+     * Get the length of the constant pool.
+     */
+    ConstantPool.prototype.getLength = function() {
+      return this.length;
+    };
+
+    /**
      * Returns the constant pool item at the given index.
      */
     ConstantPool.prototype.get = function(index) {
@@ -30,13 +40,13 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
       Util.assert(item !== undefined);
       return item;
     };
-      
-    /**
-     * Get the length of the constant pool.
-     */
-    ConstantPool.prototype.getLength = function() {
-      return this.cpItems.length;
-    };
+
+    /** TODO(jvilk): Rename the below two functions.
+     * They are somewhat confusing, but invaluable since they
+     * abstract away the special case of a '0' index for UTF8Info/
+     * ClassInfo CP items. AFAIK, no other CP item type can use
+     * the index 0?
+     **/
 
     /**
      * Get the string from a UTF8 info object at the given index.
@@ -47,7 +57,7 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
       //HACK: Sometimes 0 is used which is always undefined, which is OK.
       if (item === undefined) return item;
       Util.assert(item.getTag() === Enum.constantPoolTag.UTF8);
-      return item.string;
+      return item.getValue();
     };
 
     /**
@@ -59,7 +69,7 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
       //HACK: Sometimes 0 is used which is always undefined, which is OK.
       if (item === undefined) return item;
       Util.assert(item.getTag() === Enum.constantPoolTag.CLASS);
-      return item.name;
+      return item.getName();
     };
 
     /**

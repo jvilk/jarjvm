@@ -1,4 +1,4 @@
-define(['util/Util', 'lib/Deflate'],
+define(['util/Util', 'lib/Deflate', 'vm/Primitives'],
   function(Util, Utf8Translator) {
     /**
      * Used to read a Java Class.
@@ -54,9 +54,8 @@ define(['util/Util', 'lib/Deflate'],
     /**
      * Returns a float.
      */
-    JavaClassReader.prototype.getFloatField = function(fieldLength) {
-      Util.assert(fieldLength === 4);
-      var rawBits = this.getUintField(fieldLength);
+    JavaClassReader.prototype.getFloatField = function() {
+      var rawBits = this.getUintField(4);
       var s = ((rawBits >> 31) === 0) ? 1 : -1;
 
       //Make it unsigned.
@@ -74,9 +73,7 @@ define(['util/Util', 'lib/Deflate'],
     /**
      * Returns a double.
      */
-    JavaClassReader.prototype.getDoubleField = function(fieldLength) {
-      Util.assert(fieldLength === 8);
-      
+    JavaClassReader.prototype.getDoubleField = function() {
       var bits_1 = this.getUintField(2);
       
       //Sign.
@@ -179,6 +176,15 @@ define(['util/Util', 'lib/Deflate'],
         currentChar = utf8tler.readChar();
       }
       return string;
+    };
+
+    /**
+     * Turns raw bytes in the Java Class file into a Long.
+     */
+    JavaClassReader.prototype.getLongField = function() {
+      var high = jcr.getUintField(4);
+      var low = jcr.getUintField(4);
+      return Primitives.getLong(low, high);
     };
 
     return JavaClassReader;
