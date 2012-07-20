@@ -1,5 +1,5 @@
-define(['vm/FieldDescriptor', 'vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/Primitives', 'vm/MethodRun', 'vm/Enum'],
-  function(FieldDescriptor, JavaArray, printStackTrace, Primitives, MethodRun, Enum) {
+define(['vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/Primitives', 'vm/MethodRun', 'vm/Enum'],
+  function(JavaArray, printStackTrace, Primitives, MethodRun, Enum) {
     var Util = {};
 
     /* child must be a reference to this, and parentConstructor is the string that is the name of the contructor */
@@ -68,99 +68,15 @@ define(['vm/FieldDescriptor', 'vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/Pr
       return MethodRun.constructObject("java/lang/String", "([C)V", charArray);
     };
 
+    /** TODO: Just make descriptor objects. **/
+
     Util.parseMethodDescriptor = function(descriptorText) {
       Util.assert(descriptorText !== undefined);
       if(descriptorText.charAt(0) === '('){
         args = [];
         return Util.parseParameters(descriptorText.substr(1), args);
-
       }
     };
-
-    /*Parsing Helper Functions*/
-    Util.parseObjectDescriptor = function(text) {
-      var semicolon = text.indexOf(';');
-      if(semicolon !== -1){
-        var result = text.substr(1, semicolon - 1); //Ignore the L
-        return result;
-      }
-    };
-
-    Util.parseArrayDescriptor = function(text, numOfDim) {
-      if(text.charAt(0) === '['){
-        numOfDim += 1;
-        return Util.parseArrayDescriptor(text.substr(1), numOfDim);
-      }else{
-        var arrayType = Util.parseFieldDescriptor(text);
-        return new FieldArrayDescriptor(FieldDescriptor.type.ARRAY, numOfDim, arrayType);
-      }
-    };
-
-    Util.parseParameters = function(descriptorText, args) {
-      if(descriptorText.charAt(0) === ')'){
-        var field = Util.parseFieldDescriptor(descriptorText.substr(1));
-        var method =  new MethodDescriptor(args,field);
-        return method;
-      }else{
-        var descriptor = Util.parseFieldDescriptor(descriptorText);
-        args.push(descriptor);
-        return Util.parseParameters(descriptorText.substr(descriptor.length), args); //The last call should have changed the descriptorText
-      }
-    };
-
-    Util.parseFieldDescriptor = function(descriptorText) {
-      //Obejct Type
-      if(descriptorText.charAt(0) === 'L'){
-        return new FieldObjectDescriptor(FieldDescriptor.type.OBJECT, Util.parseObjectDescriptor(descriptorText));
-      }
-      //Array Type - Crazy Recursion
-      else if(descriptorText.charAt(0) === '['){
-        return Util.parseArrayDescriptor(descriptorText, 0);
-      }
-      //Base Type
-      else{
-        return new FieldBaseDescriptor(FieldDescriptor.type.BASE, descriptorText.charAt(0));
-      }
-    };
-
-    function FieldObjectDescriptor(type, className) {
-      var length = className.length + 2;
-      Util.inherits(this, FieldDescriptor, type, length);
-      this.className = className;
-      
-      this.toString = function(){
-        return this.type + ", ClassName: " + this.className;
-      };
-    }
-
-    function FieldArrayDescriptor(type, numberOfDimension, arrayType) { //Array type could be a FieldObjectDescriptor or a FieldBaseDescriptor!!
-      var length = numberOfDimension + arrayType.length;
-      Util.inherits(this, FieldDescriptor, type, length);
-      this.numberOfDimension = numberOfDimension;
-      this.arrayType = arrayType;
-      
-      this.toString = function(){
-          return this.type + ", NumOfDim: " + this.numberOfDimension + ", Array Type:[" + arrayType + "]";
-      };
-    }
-
-    function FieldBaseDescriptor(type, baseValue) {
-      Util.inherits(this, FieldDescriptor, type, 1);
-      this.baseValue = baseValue;
-      
-      this.toString = function(){
-        return this.type + ", PrimitiveType: " + this.baseValue;
-      };
-    }
-
-    function MethodDescriptor(args, returnType) {
-      this.args = args;
-      this.returnType = returnType;
-      
-      this.toString = function(){
-        return "args: " + this.args.length + ", returnType: " + this.returnType;
-      };
-    }
 
     //TODO: This should not be here.
     Util.pushElement = function(text){
@@ -242,6 +158,7 @@ define(['vm/FieldDescriptor', 'vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/Pr
     Util.checkIsValidUnqualifiedName = function(name, isMethod) {
       var i, c, badCharacters = {'.':1, ';':1, '[':1, '/':1};
 
+      Util.assert(name !== undefined);
       Util.assert(name.length > 0);
 
       if (isMethod) {

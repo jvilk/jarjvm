@@ -29,6 +29,6 @@ Why is it called JAR JVM? Well, JAR JVM was initially developed by three people 
 
 __J__ohn Vilk
 
-__A__meer Rahmati
+__A__mir Rahmati
 
 __R__yan Hurley

@@ -1,5 +1,5 @@
-define(['util/Util', 'vm/Enum'],
-  function(Util, Enum) {
+define(['util/Util', 'vm/Enum', 'vm/MethodDescriptor', 'vm/FieldDescriptor'],
+  function(Util, Enum, MethodDescriptor, FieldDescriptor) {
     /* Represents a constant_pool_info for FieldRef, MethodRef, or InterfaceMethodRef.
      * parameters:
      *  refType - A tag from ConstantPoolInfo, which has to be either FIELDREF, METHODREF, INTERFACEMETHODREF
@@ -15,14 +15,52 @@ define(['util/Util', 'vm/Enum'],
       this._ref = undefined;
     }
 
-    //Resolve all references to other constant pool objects.
+    /**
+     * Resolve all references to other constant pool objects.
+     */
     ConstantRefInfo.prototype.resolveReferences = function(constantPool) {
-      //Make sure the class has resolved its references first.
-      constantPool.get(this.classIndex).resolveReferences(constantPool);
-      //TODO: Never reach into an object like this.
+      var tag = this.getTag();
+      
       this.className = constantPool.getClassInfo(this.classIndex);
       this.nameAndType = constantPool.get(this.nameAndTypeIndex);
       Util.assert(this.nameAndType.getTag() === Enum.constantPoolTag.NAMEANDTYPE);
+
+      //Verify the NameAndType according to the type of reference.
+      switch(tag) {
+        //Verify that the NameAndType is for a method.
+        case Enum.constantPoolTag.METHODREF:
+        case Enum.constantPoolTag.INTERFACEMETHODREF:
+          Util.checkIsValidUnqualifiedName(this.nameAndType.getName(), true);
+          this.descriptor = new MethodDescriptor(this.nameAndType.getDescriptor());
+          break;
+        //Verify that the NameAndType is for a field.
+        default:
+          //Name is already checked in NameAndType constructor.
+          this.descriptor = new FieldDescriptor(this.nameAndType.getDescriptor());
+          break;
+      }
+    };
+
+    /**
+     * Return the name of the class that this reference is to.
+     */
+    ConstantRefInfo.prototype.getClassName = function() {
+      return this.className;
+    };
+
+    /**
+     * Proxy method for the embedded ConstantNameAndTypeInfo object.
+     */
+    ConstantRefInfo.prototype.getName = function() {
+      return this.nameAndType.getName();
+    };
+
+    /**
+     * Returns the actual method/field descriptor for this
+     * reference.
+     */
+    ConstantRefInfo.prototype.getDescriptor = function() {
+      return this.descriptor;
     };
 
     /**

@@ -1,8 +1,10 @@
 define(['vm/Enum', 'vm/ConstantPool/ConstantPool', 'vm/ConstantPool/ConstantBigNumberInfo', 'vm/ConstantPool/ConstantClassInfo',
   'vm/ConstantPool/ConstantNameAndTypeInfo', 'vm/ConstantPool/ConstantNumberInfo', 'vm/ConstantPool/ConstantRefInfo',
-  'vm/ConstantPool/ConstantStringInfo', 'vm/ConstantPool/ConstantUTF8Info', 'util/Util', 'vm/Primitives'],
+  'vm/ConstantPool/ConstantStringInfo', 'vm/ConstantPool/ConstantUTF8Info', 'vm/ConstantPool/ConstantMethodHandleInfo',
+  'vm/ConstantPool/ConstantMethodTypeInfo', 'vm/ConstantPool/ConstantInvokeDynamicInfo', 'util/Util', 'vm/Primitives'],
   function(Enum, ConstantPool, ConstantBigNumberInfo, ConstantClassInfo, ConstantNameAndTypeInfo,
-    ConstantNumberInfo, ConstantRefInfo, ConstantStringInfo, ConstantUTF8Info, Util, Primitives) {
+    ConstantNumberInfo, ConstantRefInfo, ConstantStringInfo, ConstantUTF8Info, ConstantMethodHandleInfo,
+    ConstantMethodTypeInfo, ConstantInvokeDynamicInfo, Util, Primitives) {
 
     /**
      * Contains methods for creating a constant pool.
@@ -76,6 +78,20 @@ define(['vm/Enum', 'vm/ConstantPool/ConstantPool', 'vm/ConstantPool/ConstantBigN
             var length = jcr.getUintField(2);
             var string = jcr.getUTF8Field(length);
             cpItems[i] = new ConstantUTF8Info(string);
+            break;
+          case Enum.constantPoolTag.METHODHANDLE:
+            var referenceKind = jcr.getUintField(1);
+            var referenceIndex = jcr.getUintField(2);
+            cpItems[i] = new ConstantMethodHandleInfo(referenceKind, referenceIndex);
+            break;
+          case Enum.constantPoolTag.METHODTYPE:
+            var descriptorIndex = jcr.getUintField(2);
+            cpItems[i] = new ConstantMethodTypeInfo(descriptorIndex);
+            break;
+          case Enum.constantPoolTag.INVOKEDYNAMIC:
+            var bootstrapMethodAttr = jcr.getUintField(2);
+            var natIndex = jcr.getUintField(2);
+            cpItems[i] = new ConstantInvokeDynamicInfo(bootstrapMethodAttr, natIndex);
             break;
           default:
             JVM.printError("ERROR: Unable to determine the 'tag' element of a cp_info struct: " + tag + ".");

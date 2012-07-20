@@ -17,6 +17,7 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
       {
         if (i in this.cpItems) //This may be false for the second items for double/long constants.
         {
+          this.cpItems[i].initialized = true;
           this.cpItems[i].resolveReferences(this);
         }
       }
@@ -33,11 +34,19 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
      * Returns the constant pool item at the given index.
      */
     ConstantPool.prototype.get = function(index) {
+      //TODO(jvilk): If still in the middle of initilization,
+      //             run 'resolveReferences'.
+      //             Means that I need to make things init safe?
+      //             Array of 'is initialized?'
       //Index 0 is reserved by the JVM for historic purposes and is empty.
       if (index === 0) return undefined;
       Util.assert(index in this.cpItems);
       var item = this.cpItems[index];
       Util.assert(item !== undefined);
+      if (item.initialized !== true) {
+        item.initialized = true;
+        item.resolveReferences(this);
+      }
       return item;
     };
 
@@ -54,6 +63,7 @@ define(['util/Util', 'vm/Primitives', 'vm/Enum'],
      */
     ConstantPool.prototype.getUTF8Info = function(index) {
       var item = this.get(index);
+
       //HACK: Sometimes 0 is used which is always undefined, which is OK.
       if (item === undefined) return item;
       Util.assert(item.getTag() === Enum.constantPoolTag.UTF8);

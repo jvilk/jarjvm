@@ -254,7 +254,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
         var cpItem = cp.get(idx);
         expect(cpItem.getTag()).toBe(Enum.constantPoolTag.METHODHANDLE);
         expect(cpItem.getReferenceKind()).toBe(referenceKind);
-        expect(cpItem.getReference()).toBe(cp.get(referenceIdx));
+        expect(cpItem.getReference()).toBe(cp.get(referenceIndex));
       },
       /**
        * Creates a CONSTANT_MethodType_info struct with the
@@ -268,7 +268,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
       testMethodType = function(cp, idx, desc) {
         var cpItem = cp.get(idx);
         expect(cpItem.getTag()).toBe(Enum.constantPoolTag.METHODTYPE);
-        expect(cpItem.getDescriptor()).toBe(desc);
+        expect(cpItem.getDescriptor().toString()).toBe(desc);
       },
       /**
        * Creates a CONSTANT_InvokeDynamic_info struct with
@@ -284,7 +284,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
       testInvokeDynamic = function(cp, idx, bootstrapIdx, natIdx) {
         var cpItem = cp.get(idx);
         expect(cpItem.getTag()).toBe(Enum.constantPoolTag.INVOKEDYNAMIC);
-        expect(cpItem.bootstrapIdx).toBe(bootstrapIdx);
+        expect(cpItem._bootstrapMethodAttrIndex).toBe(bootstrapIdx);
         expect(cpItem.nameAndType).toBe(cp.get(natIdx));
       },
       /**
@@ -336,7 +336,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
       sampleFieldrefIdx = 22,
       sampleMethodrefIdx = 23,
       sampleInterfaceMethodrefIdx = 24,
-      sampleCpSize = 27,
+      sampleCpSize = 28,
       sampleMethodHandleIdx = 25,
       sampleMethodTypeIdx = 26,
       sampleInvokeDynamicIdx = 27,
@@ -783,7 +783,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
         it("should validate the name as an unqualified name",
           function() {
-            var badNames = ["<help>", "<help", "he<lp", "he>lp", ";he;lp", "he.lp", "he/lp"],
+            //NOTE: We cannot test <>, since those are technically acceptable
+            //in the case of field names.
+            var badNames = [";he;lp", "he.lp", "he/lp"],
               type = "()V";
 
             badNames.forEach(function(badName) {
@@ -812,13 +814,13 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             badIndices.forEach(function(badIndex1) {
               sampleCp(2);
               makeUTF8("()V");
-              makeNat(badIndex1, sampleCpSize+1);
+              makeNat(badIndex1, sampleCpSize);
               expect(getCp).toThrow();
               reset();
 
               sampleCp(2);
               makeUTF8("test");
-              makeNat(sampleCpSize+1, badIndex1);
+              makeNat(sampleCpSize, badIndex1);
               expect(getCp).toThrow();
               reset();
 
@@ -1204,7 +1206,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             testMethodHandle(cp, sampleMethodHandleIdx, Enum.referenceKind.GETFIELD, sampleFieldrefIdx);
 
             //MethodType
-            testMethodType(cp, sampleMethodTypeIdx, 5);
+            testMethodType(cp, sampleMethodTypeIdx, sampleMethodDescriptor);
 
             //InvokeDynamic
             testInvokeDynamic(cp, sampleInvokeDynamicIdx, 3, 20);
@@ -1218,7 +1220,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             makeNat(7, 8);
 
             cp = getCp();
-            testNat(cp, sampleCpSize+1, sampleInterfaceMethodName, sampleInterfaceMethodDescriptor);
+            testNat(cp, sampleCpSize, sampleInterfaceMethodName, sampleInterfaceMethodDescriptor);
           }
         );
       }
@@ -1277,7 +1279,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
               makeMethodHandle(referenceKind, 6);
               cp = getCp();
-              testMethodHandle(cp, 7, referenceKind, 7);
+              testMethodHandle(cp, 7, referenceKind, 6);
               reset();
 
               //These should fail.
@@ -1318,7 +1320,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               enhancedMakeMethodref(className, methodName, methodDesc, 1);
               makeMethodHandle(referenceKind, 6);
               cp = getCp();
-              testMethodHandle(cp, 7, referenceKind, 7);
+              testMethodHandle(cp, 7, referenceKind, 6);
               reset();
 
               //This should fail.
@@ -1356,7 +1358,7 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
             makeMethodHandle(referenceKind, 6);
             cp = getCp();
-            testMethodHandle(cp, 7, referenceKind, 7);
+            testMethodHandle(cp, 7, referenceKind, 6);
             reset();
           }
         );
@@ -1446,15 +1448,19 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
                             sampleMethodrefNatIdx,
                             sampleInterfaceMethodrefNatIdx,
                             sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
                             sampleMethodHandleIdx,
                             sampleMethodTypeIdx,
                             sampleInvokeDynamicIdx,
-                            50]; //Out of range
+                            50], //Out of range
+              referenceKinds = [], refKind;
 
-            Enum.referenceKinds.forEach(function(referenceKind) {
+            //TODO(jvilk): Why can't I forEach on
+            //Enum.referenceKind.keys?
+            for (refKind in Enum.referenceKind) {
+              referenceKinds.push(Enum.referenceKind[refKind]);
+            }
+
+            referenceKinds.forEach(function(referenceKind) {
               badIndices.forEach(function(idx) {
                 sampleCp(1);
                 makeMethodHandle(referenceKind, idx);
