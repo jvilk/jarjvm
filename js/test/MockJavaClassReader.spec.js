@@ -1,5 +1,7 @@
 define(['../test/StructDataTypes', '../test/MockJavaClassReader', 'vm/Primitives'],
   function(StructDataTypes, MockJavaClassReader, Primitives) {
+    "use strict";
+    
     describe("MockJavaClassReader Tests",
       function () {
         var cr,

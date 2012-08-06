@@ -1,5 +1,7 @@
-define(['util/Util'],
-  function(Util) {
+define(['util/Util', 'vm/Enum'],
+  function(Util, Enum) {
+    "use strict";
+
     //Used for LONGS and DOUBLES
     function ConstantBigNumberInfo(refType, value) {
       this.tag = refType;

@@ -1,5 +1,7 @@
 define(['vm/Stack'],
   function (Stack) {
+    "use strict";
+    
     function Thread() {
       this.stack = new Stack();
       this.pc = 0;

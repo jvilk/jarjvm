@@ -1,6 +1,8 @@
 define(['vm/Attributes/AttributeFactory', 'util/Util', 'vm/FieldInfo', 'vm/Enum'],
   function(AttributeFactory, Util, FieldInfo, Enum) {
-    FieldInfoFactory = {};
+    "use strict";
+
+    var FieldInfoFactory = {};
 
     FieldInfoFactory.parseFieldInfo = function(jcr, klass, constantPool) {
       var accessFlags = jcr.getUintField(2),

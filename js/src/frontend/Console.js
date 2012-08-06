@@ -1,5 +1,7 @@
 define(['frontend/Shell', 'frontend/ConsoleInputLine', 'vm/Enum'],
   function(Shell, ConsoleInputLine, Enum) {
+    "use strict";
+    
     /**
      * Create the interactive console as a frontend to the JVM.
      * consoleId: The ID of the div that should contain the console.

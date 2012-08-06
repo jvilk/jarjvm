@@ -1,5 +1,7 @@
 define(['util/Util', 'lib/Deflate', 'vm/Primitives'],
   function(Util, Utf8Translator, Primitives) {
+    "use strict";
+    
     /**
      * Used to read a Java Class.
      */

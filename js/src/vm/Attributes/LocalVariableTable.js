@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function LocalVariableTable(attributeName, localVariableTable) {
       this.attributeName = attributeName;
       this.localVariableTable = localVariableTable;

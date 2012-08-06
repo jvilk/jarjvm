@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Enum'],
   function(Util, Enum) {
+    "use strict";
+    
     function ConstantUTF8Info(string) {
       this._string = string;
     }

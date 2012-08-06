@@ -1,5 +1,8 @@
-define(['vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/Primitives', 'vm/MethodRun', 'vm/Enum'],
-  function(JavaArray, printStackTrace, Primitives, MethodRun, Enum) {
+define(['vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/MethodRun', 'vm/Enum', '../../test/StructDataTypes'],
+  function(JavaArray, printStackTrace, MethodRun, Enum, StructDataTypes) {
+    //TODO(jvilk): Reenable once inherits is no longer used.
+    //"use strict";
+    
     var Util = {};
 
     /* child must be a reference to this, and parentConstructor is the string that is the name of the contructor */
@@ -57,6 +60,10 @@ define(['vm/JavaArray', 'lib/JavaScriptStackTrace', 'vm/Primitives', 'vm/MethodR
 
     /**
      * Converts the JavaScript string into a Java string.
+     * NOTE: Currently broken. I removed the dependency on
+     * Primitives to get rid of a dependency.
+     * This will be fixed once Primitives no longer exists...
+     * TODO(jvilk): Fix.
      */
     Util.getJavaString = function(string) {
       var charArray = new JavaArray(Enum.dataType.CHAR, null, 1, string.length);

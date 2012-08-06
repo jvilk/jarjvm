@@ -1,6 +1,8 @@
-define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode'],
-  function(Util, MethodRun, Primitives, ByteCode) {
-    NativeFunctions = {};
+define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/ByteCode', 'vm/Enum'],
+  function(Util, MethodRun, Primitives, ByteCode, Enum) {
+    "use strict";
+
+    var NativeFunctions = {};
 
     /**
      * Stores all of the native functions.

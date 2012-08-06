@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Enum'],
   function(Util, Enum) {
+    "use strict";
+    
     /* Represents a constant_pool_class_info.
      * parameters:
      *  nameIndex - The index into the constant pool that represents the class

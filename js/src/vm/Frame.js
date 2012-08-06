@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Enum'],
   function(Util, Enum) {
+    "use strict";
+    
     /*
      * Frame implementation:
      *      push = push item into stack

@@ -5,6 +5,8 @@ requirejs.config({
 
 require(['vm/VM', 'vm/Enum', 'util/JavaClassReader', 'vm/ClassFactory', 'util/Util'],
   function (VM, Enum, JavaClassReader, ClassFactory, Util) {
+    "use strict";
+    
     /**
      * Prevent Chrome from going back a page when backspace is hit.
      */

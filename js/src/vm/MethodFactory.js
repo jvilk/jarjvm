@@ -1,6 +1,8 @@
 define(['vm/Attributes/AttributeFactory', 'vm/Method', 'util/Util'],
   function(AttributeFactory, Method, Util) {
-    MethodFactory = {};
+    "use strict";
+    
+    var MethodFactory = {};
 
     MethodFactory.parseMethod = function(jcr, klass, constantPool) {
       var accessFlags = jcr.getUintField(2),

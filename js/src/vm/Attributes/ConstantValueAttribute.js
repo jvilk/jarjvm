@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function ConstantValueAttribute(attributeName, attributeLength, constantValue) {
       this.attributeName = attributeName;
       this.attributeLength = attributeLength;

@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function InnerClassAttribute(attributeName, classes) {
       this.attributeName = attributeName;
       this.classes = classes;

@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray', 'vm/Enum'],
   function(Util, Data, MethodRun, Primitives, JavaArray, Enum) {
+    "use strict";
+    
     /**
      * Contains the code for every bytecode instruction.
      */

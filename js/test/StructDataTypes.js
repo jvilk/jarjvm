@@ -1,7 +1,9 @@
 define(
   function() {
+    "use strict";
+
     //Maps structs to byte size. Not utf8, though.
-    StructDataTypes = {
+    var StructDataTypes = {
       'u1': 1,
       'u2': 2,
       'u4': 4,

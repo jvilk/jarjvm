@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Enum', 'vm/MethodDescriptor'],
   function(Util, Enum, MethodDescriptor) {
+    "use strict";
+    
     function ConstantInvokeDynamicInfo(bootstrapMethodAttrIndex, natIndex) {
       this._bootstrapMethodAttrIndex = bootstrapMethodAttrIndex;
       this._natIndex = natIndex;

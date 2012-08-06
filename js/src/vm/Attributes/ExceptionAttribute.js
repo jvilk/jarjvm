@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function ExceptionAttribute(attributeName, attributeLength, exceptionsIndexTable) {
       this.attributeName = attributeName;
       this.attributeLength = attributeLength;

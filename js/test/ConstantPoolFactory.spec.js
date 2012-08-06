@@ -5,381 +5,17 @@
  * lol this is a long class. I should break this up into submodules at some point,
  * with a module devoted solely to helper functions...
  */
-define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'vm/Enum', 'vm/Primitives'],
-  function(ConstantPoolFactory, MockJavaClassReader, Enum, Primitives) {
+define(['vm/ConstantPool/ConstantPoolFactory', '../test/ConstantPoolFactoryHelper', '../test/MockJavaClassReader', 'vm/Enum', 'vm/Primitives'],
+  function(ConstantPoolFactory, cpfh, MockJavaClassReader, Enum, Primitives) {
+    "use strict";
+    
     var cr,
-    /** HELPER FUNCTIONS **/
       /**
        * Run before every test. Resets the class reader.
        */
       reset = function() {
-        cr = new MockJavaClassReader();
-      },
-      /**
-       * Specifies the size of the CP. Note that the
-       * resulting CP size is going to be numItems+1,
-       * since the JVM reserves the 0th spot in the
-       * ConstantPool to represent 'undefined'.
-       */
-      initCp = function(numItems) {
-        cr.addField('u2', numItems+1);
-      },
-      /**
-       * Creates a CONSTANT_Utf8_info struct with
-       * the given value.
-       */
-      makeUTF8 = function(val) {
-        cr.addField('u1', 1, 'tag');
-        cr.addField('u2', val.length, 'length');
-        cr.addField('utf8', val, 'bytes');
-      },
-      testUtf8 = function(cp, idx, value) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.UTF8);
-        expect(cpItem.getValue()).toBe(value);
-        expect(cp.getUTF8Info(idx)).toBe(value);
-      },
-      /**
-       * Creates a CONSTANT_Integer_info struct with
-       * the given value.
-       */
-      makeInt = function(val) {
-        cr.addField('u1', 3, 'tag');
-        cr.addField('i4', val, 'bytes');
-      },
-      testNumber = function(tag, cp, idx, theValue) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(tag);
-        expect(cpItem.getValue().value).toBe(theValue);
-      },
-      testInt = function(cp, idx, theValue) {
-        testNumber(Enum.constantPoolTag.INTEGER, cp, idx, theValue);
-      },
-      /**
-       * Creates a CONSTANT_Float_info struct with
-       * the given value.
-       */
-      makeFloat = function(val) {
-        cr.addField('u1', 4, 'tag');
-        cr.addField('float', val, 'bytes');
-      },
-      testFloat = function(cp, idx, theValue) {
-        testNumber(Enum.constantPoolTag.FLOAT, cp, idx, theValue);
-      },
-      /**
-       * Creates a CONSTANT_Double_info struct with
-       * the given value.
-       */
-      makeDouble = function(val) {
-        cr.addField('u1', 6, 'tag');
-        cr.addField('double', val);
-      },
-      testDouble = function(cp, idx, val) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.DOUBLE);
-        expect(cpItem.getValue().value).toBe(val);
-        shouldThrow(cp, 'get', idx+1);
-      },
-      /**
-       * Creates a CONSTANT_String_info struct that
-       * references the CONSTANT_Utf8_info struct at
-       * the given index in the constant pool.
-       */
-      makeString = function(utf8Index) {
-        cr.addField('u1', 8, 'tag');
-        cr.addField('u2', utf8Index, 'string_index');
-      },
-      testString = function(cp, idx, value) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.STRING);
-        expect(cpItem.getString()).toBe(value);
-      },
-      /**
-       * Creates a CONSTANT_Long_info struct with the
-       * given value.
-       */
-      makeLong = function(val) {
-        cr.addField('u1', 5);
-        cr.addField('long', val, 'value');
-      },
-      testLong = function(cp, idx, val) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.LONG);
-        expect(cpItem.getValue().equals(Primitives.getLongFromNumber(val))).toBe(true);
-        shouldThrow(cp, 'get', idx+1);
-      },
-      /**
-       * Creates a CONSTANT_Class_info struct with the
-       * given value.
-       */
-      makeClass = function(nameIndex) {
-        cr.addField('u1', 7);
-        cr.addField('u2', nameIndex);
-      },
-      testClass = function(cp, idx, className) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.CLASS);
-        expect(cpItem.getName()).toBe(className);
-        expect(cp.getClassInfo(idx)).toBe(className);
-      },
-      /**
-       * Creates the 'ref' type with the given tag.
-       */
-      _makeRefType = function(tagNum, classIndex, natIndex) {
-        cr.addField('u1', tagNum);
-        cr.addField('u2', classIndex);
-        cr.addField('u2', natIndex);
-      },
-      _testRefType = function(tagNum, cp, idx, natIdx, className) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(tagNum);
-        expect(cpItem.nameAndType).toBe(cp.get(natIdx));
-        expect(cpItem.className).toBe(className);
-      },
-      /**
-       * Creates a CONSTANT_Fieldref_info struct with that
-       * references a CONSTANT_Class_info struct at the
-       * given index, and a CONSTANT_NameAndType_info struct
-       * at the given index.
-       */
-      makeFieldref = function(classIndex, natIndex) {
-        _makeRefType(9, classIndex, natIndex);
-      },
-      testFieldref = function(cp, idx, natIdx, className) {
-        _testRefType(Enum.constantPoolTag.FIELDREF, cp, idx, natIdx, className);
-      },
-      /**
-       * A version of 'makeFieldref' that generates all dependent
-       * constant pool items.
-       */
-      enhancedMakeFieldref = function(className, fieldName, fieldDesc, extraSlots) {
-        extraSlots = extraSlots === undefined ? 0 : extraSlots;
-
-        reset();
-
-        initCp(6+extraSlots);
-        makeUTF8(className); //1
-        makeUTF8(fieldName); //2
-        makeUTF8(fieldDesc); //3
-        makeClass(1); //4
-        makeNat(2, 3); //5
-        makeFieldref(4, 5); //6
-      },
-      /**
-       * Creates a CONSTANT_Methodref_info struct with that
-       * references a CONSTANT_Class_info struct at the
-       * given index, and a CONSTANT_NameAndType_info struct
-       * at the given index.
-       */
-      makeMethodref = function(classIndex, natIndex) {
-        _makeRefType(10, classIndex, natIndex);
-      },
-      testMethodref = function(cp, idx, natIdx, className) {
-        _testRefType(Enum.constantPoolTag.METHODREF, cp, idx, natIdx, className);
-      },
-      /**
-       * A version of 'makeMethodref' that generates all dependent
-       * constant pool items automatically.
-       */
-      enhancedMakeMethodref = function(className, methodName, methodDesc, extraSlots) {
-        extraSlots = extraSlots === undefined ? 0 : extraSlots;
-
-        reset();
-
-        initCp(6+extraSlots);
-        makeUTF8(className); //1
-        makeUTF8(methodName); //2
-        makeUTF8(methodDesc); //3
-        makeClass(1); //4
-        makeNat(2, 3); //5
-        makeMethodref(4, 5); //6
-      },
-      /**
-       * Creates a CONSTANT_InterfaceMethodref_info struct with that
-       * references a CONSTANT_Class_info struct at the
-       * given index, and a CONSTANT_NameAndType_info struct
-       * at the given index.
-       */
-      makeInterfaceMethodref = function(classIndex, natIndex) {
-        _makeRefType(11, classIndex, natIndex);
-      },
-      testInterfaceMethodref = function(cp, idx, natIdx, className) {
-        _testRefType(Enum.constantPoolTag.INTERFACEMETHODREF, cp, idx, natIdx, className);
-      },
-      /**
-       * A version of 'makeInterfaceMethodref' that generates all dependent
-       * constant pool items automatically.
-       */
-      enhancedMakeInterfaceMethodref = function(className, methodName, methodDesc, extraSlots) {
-        extraSlots = extraSlots === undefined ? 0 : extraSlots;
-
-        reset();
-
-        initCp(6+extraSlots);
-        makeUTF8(className); //1
-        makeUTF8(methodName); //2
-        makeUTF8(methodDesc); //3
-        makeClass(1); //4
-        makeNat(2, 3); //5
-        makeInterfaceMethodref(4, 5); //6
-      },
-      /**
-       * Creates a CONSTANT_NameAndType_info struct with
-       * the name given in a CONSTANT_Utf8_info struct at
-       * the given index, and a descriptor in a
-       * CONSTANT_Utf8_info struct at the given index.
-       */
-      makeNat = function(nameIndex, descriptorIndex) {
-        cr.addField('u1', 12);
-        cr.addField('u2', nameIndex);
-        cr.addField('u2', descriptorIndex);
-      },
-      testNat = function(cp, idx, name, desc) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.NAMEANDTYPE);
-        expect(cpItem.getName()).toBe(name);
-        expect(cpItem.getDescriptor()).toBe(desc);
-      },
-      /**
-       * Creates a CONSTANT_MethodHandle_info struct with
-       * the given reference kind to the constant pool item
-       * at the given index.
-       */
-      makeMethodHandle = function(referenceKind, referenceIndex) {
-        cr.addField('u1', Enum.constantPoolTag.METHODHANDLE);
-        cr.addField('u1', referenceKind);
-        cr.addField('u2', referenceIndex);
-      },
-      testMethodHandle = function(cp, idx, referenceKind, referenceIndex) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.METHODHANDLE);
-        expect(cpItem.getReferenceKind()).toBe(referenceKind);
-        expect(cpItem.getReference()).toBe(cp.get(referenceIndex));
-      },
-      /**
-       * Creates a CONSTANT_MethodType_info struct with the
-       * descriptor from a CONSTANT_Utf8_info struct found
-       * at the specified index in the constant pool.
-       */
-      makeMethodType = function(descriptorIdx) {
-        cr.addField('u1', Enum.constantPoolTag.METHODTYPE);
-        cr.addField('u2', descriptorIdx);
-      },
-      testMethodType = function(cp, idx, desc) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.METHODTYPE);
-        expect(cpItem.getDescriptor().toString()).toBe(desc);
-      },
-      /**
-       * Creates a CONSTANT_InvokeDynamic_info struct with
-       * the given index into the class's bootstrap_methods table
-       * and the name and type info found at the given index into
-       * the constant pool.
-       */
-      makeInvokeDynamic = function(bootstrapIdx, natIdx) {
-        cr.addField('u1', Enum.constantPoolTag.INVOKEDYNAMIC);
-        cr.addField('u2', bootstrapIdx);
-        cr.addField('u2', natIdx);
-      },
-      testInvokeDynamic = function(cp, idx, bootstrapIdx, natIdx) {
-        var cpItem = cp.get(idx);
-        expect(cpItem.getTag()).toBe(Enum.constantPoolTag.INVOKEDYNAMIC);
-        expect(cpItem._bootstrapMethodAttrIndex).toBe(bootstrapIdx);
-        expect(cpItem.nameAndType).toBe(cp.get(natIdx));
-      },
-      /**
-       * Constructs and returns the ConstantPool constructed using the
-       * MockJavaClassReader.
-       */
-      getCp = function() {
-        return ConstantPoolFactory.parseConstantPool(cr);
-      },
-      /**
-       * Takes in an object, a member function, and its arguments.
-       * Tests that running the member function on the object with the specified arguments
-       * throws an exception.
-       */
-      shouldThrow = function(object, fcnName) {
-        var args = Array.prototype.slice.apply(arguments);
-        expect(function() { object[fcnName].apply(object, args.slice(2)); }).toThrow();
-      },
-      /**
-       * SAMPLE CONSTANT POOL
-       * Below, we construct a sample constant pool with the given sample data.
-       * This sample pool contains at least 1 of every constant pool item.
-       **/
-      sampleClassName = "UnitTests/BabyMaker",
-      sampleFieldName = "babies",
-      sampleFieldDescriptor = "I",
-      sampleMethodName = "makeBabies",
-      sampleMethodDescriptor = "()V",
-      sampleInterfaceName = "UnitTests/Maker",
-      sampleInterfaceMethodName = "make",
-      sampleInterfaceMethodDescriptor = "(B)C",
-      sampleString = "lol BabyMaker, that's funny",
-      sampleInt = 3,
-      sampleFloat = 4.3,
-      sampleLong = 23232323,
-      sampleDouble = 1.323232,
-      sampleUTF8Idx = 1,
-      sampleUTF8Text = sampleClassName,
-      sampleIntIdx = 10,
-      sampleFloatIdx = 11,
-      sampleLongIdx = 12,
-      sampleDoubleIdx = 14,
-      sampleClassIdx = 16,
-      sampleInterfaceIdx = 17,
-      sampleStringIdx = 18,
-      sampleFieldrefNatIdx = 19,
-      sampleMethodrefNatIdx = 20,
-      sampleInterfaceMethodrefNatIdx = 21,
-      sampleFieldrefIdx = 22,
-      sampleMethodrefIdx = 23,
-      sampleInterfaceMethodrefIdx = 24,
-      sampleCpSize = 28,
-      sampleMethodHandleIdx = 25,
-      sampleMethodTypeIdx = 26,
-      sampleInvokeDynamicIdx = 27,
-      /**
-       * Adds data to the class reader to build
-       * a comprehensive sample constant pool.
-       * emptySlots is the number of extra slots that
-       * we should allocate into the constant pool.
-       */
-      sampleCp = function(emptySlots) {
-        initCp(27 + emptySlots);
-
-        //We'll place all of the constants on top.
-        makeUTF8(sampleClassName); //1
-        makeUTF8(sampleFieldName); //2
-        makeUTF8(sampleFieldDescriptor); //3
-        makeUTF8(sampleMethodName); //4
-        makeUTF8(sampleMethodDescriptor); //5
-        makeUTF8(sampleInterfaceName); //6
-        makeUTF8(sampleInterfaceMethodName); //7
-        makeUTF8(sampleInterfaceMethodDescriptor); //8
-        makeUTF8(sampleString); //9
-        makeInt(sampleInt); //10
-        makeFloat(sampleFloat); //11
-        makeLong(sampleLong); //12+13
-        makeDouble(sampleDouble); //14+15
-
-        //These guys reference the cp items above.
-        makeClass(1); //16
-        makeClass(6); //17
-        makeString(9); //18
-        makeNat(2, 3); //19
-        makeNat(4, 5); //20
-        makeNat(7, 8); //21
-
-        //These guys reference everything above. Yay.
-        makeFieldref(16, 19); //22
-        makeMethodref(16, 20); //23
-        makeInterfaceMethodref(17, 21); //24
-
-        makeMethodHandle(Enum.referenceKind.GETFIELD, 22); //25
-        makeMethodType(5); //26
-        makeInvokeDynamic(3, 20); //27
+        cpfh.reset();
+        cr = cpfh.getCr();
       };
 
     /**
@@ -401,21 +37,21 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
         it("should be OK with an empty CP",
           function() {
-            initCp(0);
-            var cp = getCp();
+            cpfh.initCp(0);
+            var cp = cpfh.getCp();
             expect(cp.getLength()).toBe(1);
             expect(cp.get(0)).toBe(undefined);
             expect(cp.getUTF8Info(0)).toBe(undefined);
             expect(cp.getClassInfo(0)).toBe(undefined);
-            shouldThrow(cp, 'get', 1);
-            shouldThrow(cp, 'getUTF8Info', 1);
-            shouldThrow(cp, 'getClassInfo', 1);
-            shouldThrow(cp, 'get', 0.1);
-            shouldThrow(cp, 'getUTF8Info', 0.1);
-            shouldThrow(cp, 'getClassInfo', 0.1);
-            shouldThrow(cp, 'get', -1);
-            shouldThrow(cp, 'getUTF8Info', -1);
-            shouldThrow(cp, 'getClassInfo', -1);
+            cpfh.shouldThrow(cp, 'get', 1);
+            cpfh.shouldThrow(cp, 'getUTF8Info', 1);
+            cpfh.shouldThrow(cp, 'getClassInfo', 1);
+            cpfh.shouldThrow(cp, 'get', 0.1);
+            cpfh.shouldThrow(cp, 'getUTF8Info', 0.1);
+            cpfh.shouldThrow(cp, 'getClassInfo', 0.1);
+            cpfh.shouldThrow(cp, 'get', -1);
+            cpfh.shouldThrow(cp, 'getUTF8Info', -1);
+            cpfh.shouldThrow(cp, 'getClassInfo', -1);
           }
         );
       }
@@ -432,18 +68,18 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             strings.forEach(
               function(value) {
                 var cp;
-                initCp(1);
-                makeUTF8(value);
-                cp = getCp();
+                cpfh.initCp(1);
+                cpfh.makeUTF8(value);
+                cp = cpfh.getCp();
                 expect(cp.getLength()).toBe(2);
                 expect(cp.getUTF8Info(0)).toBe(undefined);
 
-                testUtf8(cp, 1, value);
+                cpfh.testUtf8(cp, 1, value);
 
-                shouldThrow(cp, 'getClassInfo', 1);
-                shouldThrow(cp, 'get', 2);
-                shouldThrow(cp, 'getUTF8Info', 2);
-                shouldThrow(cp, 'getClassInfo', 2);
+                cpfh.shouldThrow(cp, 'getClassInfo', 1);
+                cpfh.shouldThrow(cp, 'get', 2);
+                cpfh.shouldThrow(cp, 'getUTF8Info', 2);
+                cpfh.shouldThrow(cp, 'getClassInfo', 2);
 
                 reset();
               }
@@ -455,18 +91,18 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             var cp, cpItem;
 
-            initCp(2);
-            makeUTF8(" ");
-            makeUTF8(" hey");
+            cpfh.initCp(2);
+            cpfh.makeUTF8(" ");
+            cpfh.makeUTF8(" hey");
 
-            cp = getCp();
+            cp = cpfh.getCp();
             expect(cp.getLength()).toBe(3);
             expect(cp.get(0)).toBe(undefined);
 
-            testUtf8(cp, 1, " ");
-            testUtf8(cp, 2, " hey");
+            cpfh.testUtf8(cp, 1, " ");
+            cpfh.testUtf8(cp, 2, " hey");
 
-            shouldThrow(cp, 'get', 3);
+            cpfh.shouldThrow(cp, 'get', 3);
           }
         );
       }
@@ -480,12 +116,12 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             var cp;
 
-            initCp(2);
-            makeUTF8("name");
-            makeString(1);
+            cpfh.initCp(2);
+            cpfh.makeUTF8("name");
+            cpfh.makeString(1);
 
-            cp = getCp();
-            testString(cp, 2, "name");
+            cp = cpfh.getCp();
+            cpfh.testString(cp, 2, "name");
           }
         );
 
@@ -493,38 +129,38 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             var cp;
 
-            initCp(2);
-            makeString(2);
-            makeUTF8("lol");
+            cpfh.initCp(2);
+            cpfh.makeString(2);
+            cpfh.makeUTF8("lol");
 
-            cp = getCp();
-            testString(cp, 1, "lol");
+            cp = cpfh.getCp();
+            cpfh.testString(cp, 1, "lol");
             expect(cp.getLength()).toBe(3);
           }
         );
 
         it("should complain loudly if the UTF8 reference happens to be anything else",
           function() {
-            var badIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx];
+            var badIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx];
 
             badIndices.forEach(function(idx) {
-              sampleCp(1);
-              makeString(idx);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(1);
+              cpfh.makeString(idx);
+              expect(cpfh.getCp).toThrow();
 
               reset();
             });
@@ -535,9 +171,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             //Note that negative CP indices are impossible, since
             //it's dictated by an unsigned value.
-            initCp(1);
-            makeString(2);
-            expect(getCp).toThrow();
+            cpfh.initCp(1);
+            cpfh.makeString(2);
+            expect(cpfh.getCp).toThrow();
           }
         );
       }
@@ -552,9 +188,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             var values = [0, 1, -1];
 
             values.forEach(function(aValue) {
-              initCp(1);
-              makeInt(aValue);
-              testInt(getCp(), 1, aValue);
+              cpfh.initCp(1);
+              cpfh.makeInt(aValue);
+              cpfh.testInt(cpfh.getCp(), 1, aValue);
               reset();
             });
           }
@@ -571,11 +207,11 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             var values = [0, 1.1, -1.1];
 
             values.forEach(function(aValue) {
-              initCp(1);
+              cpfh.initCp(1);
 
-              makeFloat(aValue);
-              cp = getCp();
-              testFloat(cp, 1, aValue);
+              cpfh.makeFloat(aValue);
+              var cp = cpfh.getCp();
+              cpfh.testFloat(cp, 1, aValue);
               reset();
             });
           }
@@ -593,10 +229,10 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
             values.forEach(function(aValue) {
               var cp;
-              initCp(2);
-              makeLong(aValue);
-              cp = getCp();
-              testLong(cp, 1, aValue);
+              cpfh.initCp(2);
+              cpfh.makeLong(aValue);
+              cp = cpfh.getCp();
+              cpfh.testLong(cp, 1, aValue);
               expect(cp.getLength()).toBe(3);
               reset();
             });
@@ -605,9 +241,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
         it("should complain if the cp is not specified with the correct size",
           function() {
-            initCp(1);
-            makeLong(3);
-            expect(getCp).toThrow();
+            cpfh.initCp(1);
+            cpfh.makeLong(3);
+            expect(cpfh.getCp).toThrow();
           }
         );
 
@@ -615,13 +251,13 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             var cp;
 
-            initCp(4);
-            makeLong(4);
-            makeLong(7);
+            cpfh.initCp(4);
+            cpfh.makeLong(4);
+            cpfh.makeLong(7);
 
-            cp = getCp();
-            testLong(cp, 1, 4);
-            testLong(cp, 3, 7);
+            cp = cpfh.getCp();
+            cpfh.testLong(cp, 1, 4);
+            cpfh.testLong(cp, 3, 7);
 
             expect(cp.getLength()).toBe(5);
           }
@@ -639,10 +275,10 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
             values.forEach(function(aValue) {
               var cp;
-              initCp(2);
-              makeDouble(aValue);
-              cp = getCp();
-              testDouble(cp, 1, aValue);
+              cpfh.initCp(2);
+              cpfh.makeDouble(aValue);
+              cp = cpfh.getCp();
+              cpfh.testDouble(cp, 1, aValue);
               expect(cp.getLength()).toBe(3);
               reset();
             });
@@ -659,21 +295,21 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             var cp;
 
-            initCp(2);
-            makeUTF8("class");
-            makeClass(1);
+            cpfh.initCp(2);
+            cpfh.makeUTF8("class");
+            cpfh.makeClass(1);
 
-            cp = getCp();
-            testClass(cp, 2, "class");
+            cp = cpfh.getCp();
+            cpfh.testClass(cp, 2, "class");
 
             reset();
 
-            initCp(2);
-            makeClass(2);
-            makeUTF8("class");
+            cpfh.initCp(2);
+            cpfh.makeClass(2);
+            cpfh.makeUTF8("class");
 
-            cp = getCp();
-            testClass(cp, 1, "class");
+            cp = cpfh.getCp();
+            cpfh.testClass(cp, 1, "class");
           }
         );
 
@@ -688,21 +324,21 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
             goodNames.forEach(function(goodName) {
               var cp;
-              initCp(2);
-              makeUTF8(goodName);
-              makeClass(1);
+              cpfh.initCp(2);
+              cpfh.makeUTF8(goodName);
+              cpfh.makeClass(1);
 
-              cp = getCp();
-              testClass(cp, 2, goodName);
+              cp = cpfh.getCp();
+              cpfh.testClass(cp, 2, goodName);
               reset();
             });
 
             badNames.forEach(function(badName) {
-              initCp(2);
-              makeUTF8(badName);
-              makeClass(1);
+              cpfh.initCp(2);
+              cpfh.makeUTF8(badName);
+              cpfh.makeClass(1);
 
-              expect(getCp).toThrow();
+              expect(cpfh.getCp).toThrow();
               reset();
             });
           }
@@ -710,27 +346,27 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
         it("should complain loudly if the name is not a UTF8 info",
           function() {
-            var badIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+            var badIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50]; //Out of range
 
             badIndices.forEach(function(badIndex) {
-              sampleCp(1);
-              makeClass(badIndex);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(1);
+              cpfh.makeClass(badIndex);
+              expect(cpfh.getCp).toThrow();
               reset();
             });
           }
@@ -744,10 +380,10 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
         var setupNatTest = function(name, desc) {
           reset();
-          initCp(3);
-          makeUTF8(name);
-          makeUTF8(desc);
-          makeNat(1, 2);
+          cpfh.initCp(3);
+          cpfh.makeUTF8(name);
+          cpfh.makeUTF8(desc);
+          cpfh.makeNat(1, 2);
         };
 
         it("should support name and type cp items",
@@ -757,8 +393,8 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               type = "()V";
 
             setupNatTest(name, type);
-            cp = getCp();
-            testNat(cp, 3, name, type);
+            cp = cpfh.getCp();
+            cpfh.testNat(cp, 3, name, type);
           }
         );
 
@@ -769,15 +405,15 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               type = "()V";
 
             setupNatTest(name, type);
-            cp = getCp();
-            testNat(cp, 3, name, type);
+            cp = cpfh.getCp();
+            cpfh.testNat(cp, 3, name, type);
             reset();
 
-            initCp(3);
-            makeUTF8("<clinit>");
-            makeUTF8("()V");
-            makeNat(1, 2);
-            expect(getCp).toThrow();
+            cpfh.initCp(3);
+            cpfh.makeUTF8("<clinit>");
+            cpfh.makeUTF8("()V");
+            cpfh.makeNat(1, 2);
+            expect(cpfh.getCp).toThrow();
           }
         );
 
@@ -790,45 +426,45 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
             badNames.forEach(function(badName) {
               setupNatTest(badName, type);
-              expect(getCp).toThrow();
+              expect(cpfh.getCp).toThrow();
             });
           }
         );
 
         it("should complain if name and/or type is not UTF8",
           function() {
-            var badIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
+            var badIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
                             50]; //Out of range
 
             badIndices.forEach(function(badIndex1) {
-              sampleCp(2);
-              makeUTF8("()V");
-              makeNat(badIndex1, sampleCpSize);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(2);
+              cpfh.makeUTF8("()V");
+              cpfh.makeNat(badIndex1, cpfh.sampleCpSize);
+              expect(cpfh.getCp).toThrow();
               reset();
 
-              sampleCp(2);
-              makeUTF8("test");
-              makeNat(sampleCpSize, badIndex1);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(2);
+              cpfh.makeUTF8("test");
+              cpfh.makeNat(cpfh.sampleCpSize, badIndex1);
+              expect(cpfh.getCp).toThrow();
               reset();
 
               //Yo, dawg...
               badIndices.forEach(function(badIndex2) {
-                sampleCp(1);
-                makeNat(badIndex1, badIndex2);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeNat(badIndex1, badIndex2);
+                expect(cpfh.getCp).toThrow();
                 reset();
               });
             });
@@ -848,10 +484,10 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               fieldName = "blargh",
               fieldDesc = "B";
 
-            enhancedMakeFieldref(className, fieldName, fieldDesc);
+            cpfh.enhancedMakeFieldref(className, fieldName, fieldDesc);
 
-            cp = getCp();
-            testFieldref(cp, 6, 5, className);
+            cp = cpfh.getCp();
+            cpfh.testFieldref(cp, 6, 5, className);
           }
         );
 
@@ -868,60 +504,60 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             //We just want to verify that that existing verification code is
             //being used.
 
-            enhancedMakeFieldref(className, fieldName, fieldDesc);
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeFieldref(className, fieldName, fieldDesc);
+            expect(cpfh.getCp).toThrow();
           }
         );
 
         it("should complain loudly if the class and/or name and type indices point to cp items with different types",
           function() {
             var cp, i, j,
-              badClassIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleUTF8Idx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+              badClassIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleUTF8Idx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50], //Out of range
-              badNatIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleUTF8Idx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+              badNatIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleUTF8Idx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50]; //Out of range
 
             badClassIndices.forEach(function(badClassIndex) {
-              sampleCp(1);
-              makeFieldref(badClassIndex, sampleFieldrefNatIdx);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(1);
+              cpfh.makeFieldref(badClassIndex, cpfh.sampleFieldrefNatIdx);
+              expect(cpfh.getCp).toThrow();
               reset();
 
               badNatIndices.forEach(function(badNatIndex) {
-                sampleCp(1);
-                makeFieldref(sampleClassIdx, badNatIndex);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeFieldref(cpfh.sampleClassIdx, badNatIndex);
+                expect(cpfh.getCp).toThrow();
                 reset();
 
-                sampleCp(1);
-                makeFieldref(badClassIndex, badNatIndex);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeFieldref(badClassIndex, badNatIndex);
+                expect(cpfh.getCp).toThrow();
                 reset();
               });
             });
@@ -941,10 +577,10 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               methodName = "blargh",
               methodDesc = "()V";
 
-            enhancedMakeMethodref(className, methodName, methodDesc);
+            cpfh.enhancedMakeMethodref(className, methodName, methodDesc);
 
-            cp = getCp();
-            testMethodref(cp, 6, 5, className);
+            cp = cpfh.getCp();
+            cpfh.testMethodref(cp, 6, 5, className);
           }
         );
 
@@ -952,12 +588,12 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             var cp, cpItem;
 
-            enhancedMakeMethodref("TestClass", "<init>", "()V");
-            cp = getCp();
-            testMethodref(cp, 6, 5, "TestClass");
+            cpfh.enhancedMakeMethodref("TestClass", "<init>", "()V");
+            cp = cpfh.getCp();
+            cpfh.testMethodref(cp, 6, 5, "TestClass");
 
-            enhancedMakeMethodref("TestClass", "<clinit>", "()V");
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeMethodref("TestClass", "<clinit>", "()V");
+            expect(cpfh.getCp).toThrow();
           }
         );
 
@@ -973,59 +609,59 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             //We just want to verify that that existing verification code is
             //being used.
 
-            enhancedMakeMethodref(className, methodName, methodDesc);
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeMethodref(className, methodName, methodDesc);
+            expect(cpfh.getCp).toThrow();
           }
         );
 
         it("should complain loudly if the class and/or name and type indices point to cp items with different types",
           function() {
-            var badClassIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleUTF8Idx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+            var badClassIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleUTF8Idx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50], //Out of range
-              badNatIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleUTF8Idx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+              badNatIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleUTF8Idx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50]; //Out of range
 
             badClassIndices.forEach(function(badClassIndex) {
-              sampleCp(1);
-              makeMethodref(badClassIndex, sampleFieldrefNatIdx);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(1);
+              cpfh.makeMethodref(badClassIndex, cpfh.sampleFieldrefNatIdx);
+              expect(cpfh.getCp).toThrow();
               reset();
 
               badNatIndices.forEach(function(badNatIndex) {
-                sampleCp(1);
-                makeMethodref(sampleClassIdx, badNatIndex);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeMethodref(cpfh.sampleClassIdx, badNatIndex);
+                expect(cpfh.getCp).toThrow();
                 reset();
 
-                sampleCp(1);
-                makeMethodref(badClassIndex, badNatIndex);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeMethodref(badClassIndex, badNatIndex);
+                expect(cpfh.getCp).toThrow();
                 reset();
               });
             });
@@ -1046,10 +682,10 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               methodName = "blargh",
               methodDesc = "()V";
 
-            enhancedMakeInterfaceMethodref(className, methodName, methodDesc);
+            cpfh.enhancedMakeInterfaceMethodref(className, methodName, methodDesc);
 
-            cp = getCp();
-            testInterfaceMethodref(cp, 6, 5, className);
+            cp = cpfh.getCp();
+            cpfh.testInterfaceMethodref(cp, 6, 5, className);
           }
         );
 
@@ -1065,59 +701,59 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             //We just want to verify that that existing verification code is
             //being used.
 
-            enhancedMakeInterfaceMethodref(className, methodName, methodDesc);
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeInterfaceMethodref(className, methodName, methodDesc);
+            expect(cpfh.getCp).toThrow();
           }
         );
 
         it("should complain loudly if the class and/or name and type indices point to cp items with different types",
           function() {
-            var badClassIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleUTF8Idx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+            var badClassIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleUTF8Idx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50], //Out of range
-              badNatIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleUTF8Idx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+              badNatIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleUTF8Idx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50]; //Out of range
 
             badClassIndices.forEach(function(badClassIndex) {
-              sampleCp(1);
-              makeInterfaceMethodref(badClassIndex, sampleFieldrefNatIdx);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(1);
+              cpfh.makeInterfaceMethodref(badClassIndex, cpfh.sampleFieldrefNatIdx);
+              expect(cpfh.getCp).toThrow();
               reset();
 
               badNatIndices.forEach(function(badNatIndex) {
-                sampleCp(1);
-                makeInterfaceMethodref(sampleClassIdx, badNatIndex);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeInterfaceMethodref(cpfh.sampleClassIdx, badNatIndex);
+                expect(cpfh.getCp).toThrow();
                 reset();
 
-                sampleCp(1);
-                makeInterfaceMethodref(badClassIndex, badNatIndex);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeInterfaceMethodref(badClassIndex, badNatIndex);
+                expect(cpfh.getCp).toThrow();
                 reset();
               });
             });
@@ -1139,88 +775,88 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
           function() {
             var cp, cpItem;
 
-            sampleCp(0);
+            cpfh.sampleCp(0);
 
             //Let's make this huge constant pool!
-            cp = getCp();
+            cp = cpfh.getCp();
             expect(cr.isEndOfFile()).toBe(true);
 
             //Verify the sanity of the pool.
             cpItem = cp.get(0);
             expect(cpItem).toBe(undefined);
-            expect(cp.getLength()).toBe(sampleCpSize);
+            expect(cp.getLength()).toBe(cpfh.sampleCpSize);
 
             //UTF8
-            testUtf8(cp, 1, sampleClassName);
+            cpfh.testUtf8(cp, 1, cpfh.sampleClassName);
             //The above is also the sample UTF8 object...
-            testUtf8(cp, sampleUTF8Idx, sampleUTF8Text);
-            testUtf8(cp, 2, sampleFieldName);
-            testUtf8(cp, 3, sampleFieldDescriptor);
-            testUtf8(cp, 4, sampleMethodName);
-            testUtf8(cp, 5, sampleMethodDescriptor);
-            testUtf8(cp, 6, sampleInterfaceName);
-            testUtf8(cp, 7, sampleInterfaceMethodName);
-            testUtf8(cp, 8, sampleInterfaceMethodDescriptor);
-            testUtf8(cp, 9, sampleString);
+            cpfh.testUtf8(cp, cpfh.sampleUTF8Idx, cpfh.sampleUTF8Text);
+            cpfh.testUtf8(cp, 2, cpfh.sampleFieldName);
+            cpfh.testUtf8(cp, 3, cpfh.sampleFieldDescriptor);
+            cpfh.testUtf8(cp, 4, cpfh.sampleMethodName);
+            cpfh.testUtf8(cp, 5, cpfh.sampleMethodDescriptor);
+            cpfh.testUtf8(cp, 6, cpfh.sampleInterfaceName);
+            cpfh.testUtf8(cp, 7, cpfh.sampleInterfaceMethodName);
+            cpfh.testUtf8(cp, 8, cpfh.sampleInterfaceMethodDescriptor);
+            cpfh.testUtf8(cp, 9, cpfh.sampleString);
 
             //Int
-            testInt(cp, sampleIntIdx, sampleInt);
+            cpfh.testInt(cp, cpfh.sampleIntIdx, cpfh.sampleInt);
 
             //Float
-            testFloat(cp, sampleFloatIdx, sampleFloat);
+            cpfh.testFloat(cp, cpfh.sampleFloatIdx, cpfh.sampleFloat);
 
             //Long
-            testLong(cp, sampleLongIdx, sampleLong);
+            cpfh.testLong(cp, cpfh.sampleLongIdx, cpfh.sampleLong);
 
             //Double
-            testDouble(cp, sampleDoubleIdx, sampleDouble);
+            cpfh.testDouble(cp, cpfh.sampleDoubleIdx, cpfh.sampleDouble);
 
             //Class
-            testClass(cp, sampleClassIdx, sampleClassName);
+            cpfh.testClass(cp, cpfh.sampleClassIdx, cpfh.sampleClassName);
 
             //Class (interface, for testing purposes)
-            testClass(cp, sampleInterfaceIdx, sampleInterfaceName);
+            cpfh.testClass(cp, cpfh.sampleInterfaceIdx, cpfh.sampleInterfaceName);
 
             //String
-            testString(cp, sampleStringIdx, sampleString);
+            cpfh.testString(cp, cpfh.sampleStringIdx, cpfh.sampleString);
 
             //Name_and_type -- Field
-            testNat(cp, sampleFieldrefNatIdx, sampleFieldName, sampleFieldDescriptor);
+            cpfh.testNat(cp, cpfh.sampleFieldrefNatIdx, cpfh.sampleFieldName, cpfh.sampleFieldDescriptor);
 
             //Name_and_type -- method
-            testNat(cp, sampleMethodrefNatIdx, sampleMethodName, sampleMethodDescriptor);
+            cpfh.testNat(cp, cpfh.sampleMethodrefNatIdx, cpfh.sampleMethodName, cpfh.sampleMethodDescriptor);
 
             //Name_and_type -- interfacemethod
-            testNat(cp, sampleInterfaceMethodrefNatIdx, sampleInterfaceMethodName, sampleInterfaceMethodDescriptor);
+            cpfh.testNat(cp, cpfh.sampleInterfaceMethodrefNatIdx, cpfh.sampleInterfaceMethodName, cpfh.sampleInterfaceMethodDescriptor);
 
             //Fieldref
-            testFieldref(cp, sampleFieldrefIdx, sampleFieldrefNatIdx, sampleClassName);
+            cpfh.testFieldref(cp, cpfh.sampleFieldrefIdx, cpfh.sampleFieldrefNatIdx, cpfh.sampleClassName);
 
             //Methodref
-            testMethodref(cp, sampleMethodrefIdx, sampleMethodrefNatIdx, sampleClassName);
+            cpfh.testMethodref(cp, cpfh.sampleMethodrefIdx, cpfh.sampleMethodrefNatIdx, cpfh.sampleClassName);
 
             //InterfaceMethodRef
-            testInterfaceMethodref(cp, sampleInterfaceMethodrefIdx, sampleInterfaceMethodrefNatIdx, sampleInterfaceName);
+            cpfh.testInterfaceMethodref(cp, cpfh.sampleInterfaceMethodrefIdx, cpfh.sampleInterfaceMethodrefNatIdx, cpfh.sampleInterfaceName);
 
             //MethodHandle
-            testMethodHandle(cp, sampleMethodHandleIdx, Enum.referenceKind.GETFIELD, sampleFieldrefIdx);
+            cpfh.testMethodHandle(cp, cpfh.sampleMethodHandleIdx, Enum.referenceKind.GETFIELD, cpfh.sampleFieldrefIdx);
 
             //MethodType
-            testMethodType(cp, sampleMethodTypeIdx, sampleMethodDescriptor);
+            cpfh.testMethodType(cp, cpfh.sampleMethodTypeIdx, cpfh.sampleMethodDescriptor);
 
             //InvokeDynamic
-            testInvokeDynamic(cp, sampleInvokeDynamicIdx, 3, 20);
+            cpfh.testInvokeDynamic(cp, cpfh.sampleInvokeDynamicIdx, 3, 20);
           }
         );
 
         it("should allow for extra CP items at the end of the cp",
           function() {
             var cp, cpItem;
-            sampleCp(1);
-            makeNat(7, 8);
+            cpfh.sampleCp(1);
+            cpfh.makeNat(7, 8);
 
-            cp = getCp();
-            testNat(cp, sampleCpSize, sampleInterfaceMethodName, sampleInterfaceMethodDescriptor);
+            cp = cpfh.getCp();
+            cpfh.testNat(cp, cpfh.sampleCpSize, cpfh.sampleInterfaceMethodName, cpfh.sampleInterfaceMethodDescriptor);
           }
         );
       }
@@ -1238,25 +874,25 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
                 referenceKind = Enum.referenceKind.INVOKEVIRTUAL,
                 cp;
 
-            enhancedMakeMethodref(className, methodName, methodDesc, 1);
-            makeMethodHandle(referenceKind, 6);
+            cpfh.enhancedMakeMethodref(className, methodName, methodDesc, 1);
+            cpfh.makeMethodHandle(referenceKind, 6);
 
-            cp = getCp();
-            testMethodHandle(cp, 7, referenceKind, 6);
+            cp = cpfh.getCp();
+            cpfh.testMethodHandle(cp, 7, referenceKind, 6);
             reset();
 
             //Now try with a forward reference.
-            initCp(7);
-            makeMethodHandle(referenceKind, 7); //1
-            makeUTF8(className); //2
-            makeUTF8(methodName); //3
-            makeUTF8(methodDesc); //4
-            makeClass(2); //5
-            makeNat(3, 4); //6
-            makeMethodref(5, 6); //7
+            cpfh.initCp(7);
+            cpfh.makeMethodHandle(referenceKind, 7); //1
+            cpfh.makeUTF8(className); //2
+            cpfh.makeUTF8(methodName); //3
+            cpfh.makeUTF8(methodDesc); //4
+            cpfh.makeClass(2); //5
+            cpfh.makeNat(3, 4); //6
+            cpfh.makeMethodref(5, 6); //7
 
-            cp = getCp();
-            testMethodHandle(cp, 1, referenceKind, 7);
+            cp = cpfh.getCp();
+            cpfh.testMethodHandle(cp, 1, referenceKind, 7);
           }
         );
 
@@ -1276,21 +912,21 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               var cp;
 
               //This should pass.
-              enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              cp = getCp();
-              testMethodHandle(cp, 7, referenceKind, 6);
+              cpfh.enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              cp = cpfh.getCp();
+              cpfh.testMethodHandle(cp, 7, referenceKind, 6);
               reset();
 
               //These should fail.
-              enhancedMakeMethodref(className, methodName, methodDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              expect(getCp).toThrow();
+              cpfh.enhancedMakeMethodref(className, methodName, methodDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              expect(cpfh.getCp).toThrow();
               reset();
 
-              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              expect(getCp).toThrow();
+              cpfh.enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              expect(cpfh.getCp).toThrow();
               reset();
             });
           }
@@ -1311,22 +947,22 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
               var cp;
 
               //This should fail.
-              enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              expect(getCp).toThrow();
+              cpfh.enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              expect(cpfh.getCp).toThrow();
               reset();
 
               //This should pass.
-              enhancedMakeMethodref(className, methodName, methodDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              cp = getCp();
-              testMethodHandle(cp, 7, referenceKind, 6);
+              cpfh.enhancedMakeMethodref(className, methodName, methodDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              cp = cpfh.getCp();
+              cpfh.testMethodHandle(cp, 7, referenceKind, 6);
               reset();
 
               //This should fail.
-              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              expect(getCp).toThrow();
+              cpfh.enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              expect(cpfh.getCp).toThrow();
               reset();
             });
           }
@@ -1343,22 +979,22 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
                 cp;
 
             //This should fail.
-            enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
-            makeMethodHandle(referenceKind, 6);
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeFieldref(className, fieldName, fieldDesc, 1);
+            cpfh.makeMethodHandle(referenceKind, 6);
+            expect(cpfh.getCp).toThrow();
             reset();
 
             //This should fail.
-            enhancedMakeMethodref(className, methodName, methodDesc, 1);
-            makeMethodHandle(referenceKind, 6);
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeMethodref(className, methodName, methodDesc, 1);
+            cpfh.makeMethodHandle(referenceKind, 6);
+            expect(cpfh.getCp).toThrow();
             reset();
 
             //This should pass.
-            enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
-            makeMethodHandle(referenceKind, 6);
-            cp = getCp();
-            testMethodHandle(cp, 7, referenceKind, 6);
+            cpfh.enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+            cpfh.makeMethodHandle(referenceKind, 6);
+            cp = cpfh.getCp();
+            cpfh.testMethodHandle(cp, 7, referenceKind, 6);
             reset();
           }
         );
@@ -1375,9 +1011,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
             referenceKinds.forEach(function(referenceKind) {
               methodNames.forEach(function(methodName) {
                 //These should fail.
-                enhancedMakeMethodref(className, methodName, methodDesc, 1);
-                makeMethodHandle(referenceKind, 6);
-                expect(getCp).toThrow();
+                cpfh.enhancedMakeMethodref(className, methodName, methodDesc, 1);
+                cpfh.makeMethodHandle(referenceKind, 6);
+                expect(cpfh.getCp).toThrow();
                 reset();
               });
             });
@@ -1393,9 +1029,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
             methodNames.forEach(function(methodName) {
               //These should fail.
-              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              expect(getCp).toThrow();
+              cpfh.enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              expect(cpfh.getCp).toThrow();
               reset();
             });
           }
@@ -1410,28 +1046,28 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
                 referenceKind = Enum.referenceKind.NEWINVOKESPECIAL,
                 cp;
 
-            enhancedMakeMethodref(className, goodMethodName, methodDesc, 1);
-            makeMethodHandle(referenceKind, 6);
-            cp = getCp();
-            testMethodHandle(cp, 7, referenceKind, 6);
+            cpfh.enhancedMakeMethodref(className, goodMethodName, methodDesc, 1);
+            cpfh.makeMethodHandle(referenceKind, 6);
+            cp = cpfh.getCp();
+            cpfh.testMethodHandle(cp, 7, referenceKind, 6);
             reset();
 
             //These should fail (<init> should be a MethodRef)
-            enhancedMakeInterfaceMethodref(className, goodMethodName, methodDesc, 1);
-            makeMethodHandle(referenceKind, 6);
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeInterfaceMethodref(className, goodMethodName, methodDesc, 1);
+            cpfh.makeMethodHandle(referenceKind, 6);
+            expect(cpfh.getCp).toThrow();
             reset();
 
-            enhancedMakeFieldref(className, goodMethodName, methodDesc, 1);
-            makeMethodHandle(referenceKind, 6);
-            expect(getCp).toThrow();
+            cpfh.enhancedMakeFieldref(className, goodMethodName, methodDesc, 1);
+            cpfh.makeMethodHandle(referenceKind, 6);
+            expect(cpfh.getCp).toThrow();
             reset();
 
             badMethodNames.forEach(function(methodName) {
               //These should fail.
-              enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
-              makeMethodHandle(referenceKind, 6);
-              expect(getCp).toThrow();
+              cpfh.enhancedMakeInterfaceMethodref(className, methodName, methodDesc, 1);
+              cpfh.makeMethodHandle(referenceKind, 6);
+              expect(cpfh.getCp).toThrow();
               reset();
             });
           }
@@ -1439,18 +1075,18 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
         it("should not allow invalid / unrecognized reference types",
           function() {
-            var badIndices = [sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleClassIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+            var badIndices = [cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50], //Out of range
               referenceKinds = [], refKind;
 
@@ -1462,9 +1098,9 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
             referenceKinds.forEach(function(referenceKind) {
               badIndices.forEach(function(idx) {
-                sampleCp(1);
-                makeMethodHandle(referenceKind, idx);
-                expect(getCp).toThrow();
+                cpfh.sampleCp(1);
+                cpfh.makeMethodHandle(referenceKind, idx);
+                expect(cpfh.getCp).toThrow();
 
                 reset();
               });
@@ -1481,21 +1117,21 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
         it("should accept a MethodType constant pool item",
           function() {
             var descriptor = "()V", cp;
-            initCp(2);
-            makeUTF8(descriptor);
-            makeMethodType(1);
+            cpfh.initCp(2);
+            cpfh.makeUTF8(descriptor);
+            cpfh.makeMethodType(1);
 
-            cp = getCp();
-            testMethodType(cp, 2, descriptor);
+            cp = cpfh.getCp();
+            cpfh.testMethodType(cp, 2, descriptor);
             reset();
 
             //Forward reference.
-            initCp(2);
-            makeMethodType(2);
-            makeUTF8(descriptor);
+            cpfh.initCp(2);
+            cpfh.makeMethodType(2);
+            cpfh.makeUTF8(descriptor);
 
-            cp = getCp();
-            testMethodType(cp, 1, descriptor);
+            cp = cpfh.getCp();
+            cpfh.testMethodType(cp, 1, descriptor);
           }
         );
 
@@ -1506,36 +1142,36 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
         it("should only accept valid method descriptors",
           function() {
             var badDesc = "B";
-            initCp(2);
-            makeUTF8(badDesc);
-            makeMethodType(1);
+            cpfh.initCp(2);
+            cpfh.makeUTF8(badDesc);
+            cpfh.makeMethodType(1);
 
-            expect(getCp).toThrow();
+            expect(cpfh.getCp).toThrow();
           }
         );
 
         it("should complain if the method descriptor index references a non-UTF8 constant pool item",
           function() {
-            var badIndices = [sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleFieldrefNatIdx,
-                            sampleMethodrefNatIdx,
-                            sampleInterfaceMethodrefNatIdx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+            var badIndices = [cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleFieldrefNatIdx,
+                            cpfh.sampleMethodrefNatIdx,
+                            cpfh.sampleInterfaceMethodrefNatIdx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50]; //Out of range
 
             badIndices.forEach(function(idx) {
-              sampleCp(1);
-              makeMethodType(idx);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(1);
+              cpfh.makeMethodType(idx);
+              expect(cpfh.getCp).toThrow();
 
               reset();
             });
@@ -1555,25 +1191,25 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
                 desc = "()V",
                 cp;
 
-            initCp(4);
-            makeUTF8(name);
-            makeUTF8(desc);
-            makeNat(1, 2);
-            makeInvokeDynamic(bootstrapIdx, 3);
+            cpfh.initCp(4);
+            cpfh.makeUTF8(name);
+            cpfh.makeUTF8(desc);
+            cpfh.makeNat(1, 2);
+            cpfh.makeInvokeDynamic(bootstrapIdx, 3);
             
-            cp = getCp();
-            testInvokeDynamic(cp, 4, bootstrapIdx, 3);
+            cp = cpfh.getCp();
+            cpfh.testInvokeDynamic(cp, 4, bootstrapIdx, 3);
             reset();
 
             //Forward reference
-            initCp(4);
-            makeUTF8(name);
-            makeUTF8(desc);
-            makeInvokeDynamic(bootstrapIdx, 4);
-            makeNat(1, 2);
+            cpfh.initCp(4);
+            cpfh.makeUTF8(name);
+            cpfh.makeUTF8(desc);
+            cpfh.makeInvokeDynamic(bootstrapIdx, 4);
+            cpfh.makeNat(1, 2);
             
-            cp = getCp();
-            testInvokeDynamic(cp, 3, bootstrapIdx, 4);
+            cp = cpfh.getCp();
+            cpfh.testInvokeDynamic(cp, 3, bootstrapIdx, 4);
             reset();
           }
         );
@@ -1584,37 +1220,37 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
                 name = "someMethod",
                 desc = "C";
 
-            initCp(4);
-            makeUTF8(name);
-            makeUTF8(desc);
-            makeNat(1, 2);
-            makeInvokeDynamic(bootstrapIdx, 3);
+            cpfh.initCp(4);
+            cpfh.makeUTF8(name);
+            cpfh.makeUTF8(desc);
+            cpfh.makeNat(1, 2);
+            cpfh.makeInvokeDynamic(bootstrapIdx, 3);
 
-            expect(getCp).toThrow();
+            expect(cpfh.getCp).toThrow();
           }
         );
 
         it("should verify that its NameAndType reference is, in fact, a NameAndType constant pool item",
           function() {
-            var badIndices = [sampleUTF8Idx,
-                            sampleIntIdx,
-                            sampleFloatIdx,
-                            sampleLongIdx,
-                            sampleDoubleIdx,
-                            sampleStringIdx,
-                            sampleClassIdx,
-                            sampleFieldrefIdx,
-                            sampleMethodrefIdx,
-                            sampleInterfaceMethodrefIdx,
-                            sampleMethodHandleIdx,
-                            sampleMethodTypeIdx,
-                            sampleInvokeDynamicIdx,
+            var badIndices = [cpfh.sampleUTF8Idx,
+                            cpfh.sampleIntIdx,
+                            cpfh.sampleFloatIdx,
+                            cpfh.sampleLongIdx,
+                            cpfh.sampleDoubleIdx,
+                            cpfh.sampleStringIdx,
+                            cpfh.sampleClassIdx,
+                            cpfh.sampleFieldrefIdx,
+                            cpfh.sampleMethodrefIdx,
+                            cpfh.sampleInterfaceMethodrefIdx,
+                            cpfh.sampleMethodHandleIdx,
+                            cpfh.sampleMethodTypeIdx,
+                            cpfh.sampleInvokeDynamicIdx,
                             50]; //Out of range.
 
             badIndices.forEach(function(idx) {
-              sampleCp(1);
-              makeInvokeDynamic(2, idx);
-              expect(getCp).toThrow();
+              cpfh.sampleCp(1);
+              cpfh.makeInvokeDynamic(2, idx);
+              expect(cpfh.getCp).toThrow();
               reset();
             });
           }
@@ -1628,21 +1264,21 @@ define(['vm/ConstantPool/ConstantPoolFactory', '../test/MockJavaClassReader', 'v
 
         it("should complain if it receives an unrecognized constant pool item",
           function() {
-            initCp(1);
+            cpfh.initCp(1);
             cr.addField("u1", 100, "tag"); //Invalid CP item.
-            expect(getCp).toThrow();
+            expect(cpfh.getCp).toThrow();
             reset();
 
-            initCp(2);
-            makeUTF8("lol");
+            cpfh.initCp(2);
+            cpfh.makeUTF8("lol");
             cr.addField("u1", 100, "tag"); //Invalid CP item.
-            expect(getCp).toThrow();
+            expect(cpfh.getCp).toThrow();
             reset();
 
-            initCp(2);
+            cpfh.initCp(2);
             cr.addField("u1", 100, "tag"); //Invalid CP item.
-            makeUTF8("lol");
-            expect(getCp).toThrow();
+            cpfh.makeUTF8("lol");
+            expect(cpfh.getCp).toThrow();
           }
         );
       }

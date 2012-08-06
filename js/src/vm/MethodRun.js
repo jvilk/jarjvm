@@ -1,5 +1,7 @@
 define(
   function() {
+    "use strict";
+
     /**
      * Contains all of the needed information to start running a method, including:
      * * Whether or not the program counter needs to be changed to some offset
@@ -39,7 +41,7 @@ define(
      */
     MethodRun.prototype.execute = function() {
       JVM.getExecutingThread().setPC(this.pc);
-      currentMethod = JVM.getExecutingThread().getCurrentMethod();
+      var currentMethod = JVM.getExecutingThread().getCurrentMethod();
       JVM.debugPrint("Executing a methodRun for " + currentMethod + " with PC " + this.pc);
       if (this.type === MethodRun.type.EXCEPTION)
         currentMethod.exception(this.exception);

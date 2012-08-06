@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function DeprecatedAttribute(attributeName, attributeLength) {
       this.attributeName = attributeName;
       this.attributeLength = attributeLength;

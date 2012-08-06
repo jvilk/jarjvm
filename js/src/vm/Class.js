@@ -1,5 +1,7 @@
 define(['vm/ConstantPool/ConstantPool', 'vm/FieldInfo', 'vm/Method', 'util/Util', 'vm/MethodRun', 'vm/JavaObject'],
   function(ConstantPool, FieldInfo, Method, Util, MethodRun, JavaObject) {
+    "use strict";
+    
     /* This is the representation of a Java class file */
 
     /*

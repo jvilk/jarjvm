@@ -6,10 +6,12 @@ define(['vm/Attributes/ClassEntry', 'vm/Attributes/CodeAttribute', 'vm/Attribute
   function(ClassEntry, CodeAttribute, ConstantValueAttribute, DeprecatedAttribute, ExceptionAttribute,
     ExceptionTableEntry, GenericAttribute, InnerClassAttribute, LineNumberTableAttribute, LineNumberTableEntry,
     LocalVariableTable, LocalVariableTableEntry, SourceFileAttribute, SyntheticAttribute, Enum, Util, ByteCode, Instruction) {
+    "use strict";
+
     /**
      * Can create attributes and such.
      */
-    AttributeFactory = {};
+    var AttributeFactory = {};
 
     /**
      * Parses an array of attributes using a JavaClassReader positioned at the start
@@ -429,8 +431,8 @@ define(['vm/Attributes/ClassEntry', 'vm/Attributes/CodeAttribute', 'vm/Attribute
       }
       
       //NOTE: The Java spec permits us to entirely ignore these attributes.
-      attributesCount = jcr.getUintField(2);
-      attributeInfo = this.parseAttributes(jcr, attributesCount, constantPool);
+      var attributesCount = jcr.getUintField(2);
+      var attributeInfo = this.parseAttributes(jcr, attributesCount, constantPool);
 
       return new CodeAttribute(attributeName, maxStack, maxLocals, code, exceptionTable, attributeInfo);
     };

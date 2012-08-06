@@ -1,5 +1,7 @@
 define(['vm/Primitives', 'util/Util', 'vm/FieldDescriptor', 'vm/Enum'],
   function(Primitives, Util, FieldDescriptor, Enum) {
+    "use strict";
+
     /**
      * FieldInfo object
      */
@@ -30,8 +32,8 @@ define(['vm/Primitives', 'util/Util', 'vm/FieldDescriptor', 'vm/Enum'],
       {
         if (attributes[i].attributeName === "ConstantValue")
         {
-          constantValueAttribute = this.attributes[i].constantValue;
-          isConstant = this.hasFlag(FieldInfo.AccessFlags.STATIC & FieldInfo.AccessFlags.FINAL);
+          var constantValueAttribute = this.attributes[i].constantValue;
+          var isConstant = this.hasFlag(FieldInfo.AccessFlags.STATIC & FieldInfo.AccessFlags.FINAL);
           break;
         }
       }

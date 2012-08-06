@@ -5,11 +5,12 @@ define(['vm/Enum', 'vm/ConstantPool/ConstantPool', 'vm/ConstantPool/ConstantBigN
   function(Enum, ConstantPool, ConstantBigNumberInfo, ConstantClassInfo, ConstantNameAndTypeInfo,
     ConstantNumberInfo, ConstantRefInfo, ConstantStringInfo, ConstantUTF8Info, ConstantMethodHandleInfo,
     ConstantMethodTypeInfo, ConstantInvokeDynamicInfo, Util, Primitives) {
+    "use strict";
 
     /**
      * Contains methods for creating a constant pool.
      */
-    ConstantPoolFactory = {};
+    var ConstantPoolFactory = {};
 
     /**
      * Parses a constant pool from a JavaClassReader positioned at the

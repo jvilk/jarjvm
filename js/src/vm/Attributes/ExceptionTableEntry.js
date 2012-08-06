@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function ExceptionTableEntry(startPC, endPC, handlerPC, catchType) {
       this.startPC = startPC;
       this.endPC = endPC;

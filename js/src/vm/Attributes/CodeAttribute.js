@@ -1,5 +1,7 @@
-define(['util/Util', 'vm/ByteCode'],
-  function(Util, ByteCode) {
+define(['util/Util', 'vm/ByteCode', 'vm/MethodRun'],
+  function(Util, ByteCode, MethodRun) {
+    "use strict";
+
     function CodeAttribute(attributeName, maxStack, maxLocals, code, exceptionTable, attributeInfo) {
       this.attributeName = attributeName;
       this.maxStack = maxStack;

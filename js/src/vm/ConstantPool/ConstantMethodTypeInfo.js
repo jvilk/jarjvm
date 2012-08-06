@@ -4,6 +4,8 @@
  */
 define(['util/Util', 'vm/Enum', 'vm/MethodDescriptor'],
   function(Util, Enum, MethodDescriptor) {
+    "use strict";
+    
     function ConstantMethodTypeInfo(descriptorIndex) {
       this._descriptorIndex = descriptorIndex;
     }

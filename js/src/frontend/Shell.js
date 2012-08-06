@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/JavaArray', 'vm/Enum', 'vm/MethodRun'],
   function(Util, JavaArray, Enum, MethodRun) {
+    "use strict";
+    
     /**
      * Contains logic for the shell.
      * Prints output to the console, which should have a 'print' method, a promptForInput command, and a promptForInputByCharacter command.
@@ -67,7 +69,7 @@ define(['util/Util', 'vm/JavaArray', 'vm/Enum', 'vm/MethodRun'],
      */
     Shell.prototype.inputCharacter = function(inputChar) {
       if (this.inputCallbackFcn !== null) {
-        this.inputCallbackFcn(text);
+        this.inputCallbackFcn(inputChar);
         this.inputCallbackFcn = null;
         return;
       }

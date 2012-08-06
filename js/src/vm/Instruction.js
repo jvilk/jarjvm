@@ -1,5 +1,7 @@
 define(['vm/ByteCode', 'require'],
   function(ByteCode, require) {
+    "use strict";
+    
     /**
      * Contains all of the data on a single instruction, including its length, arguments,
      * and the function required to call it.

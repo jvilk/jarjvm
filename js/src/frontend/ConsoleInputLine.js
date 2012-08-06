@@ -1,5 +1,7 @@
 define(['vm/Enum'],
   function(Enum) {
+    "use strict";
+    
     /**
      * Represents the input line on the console. Abstracts away various complexities involved in
      * cursor manipulation.

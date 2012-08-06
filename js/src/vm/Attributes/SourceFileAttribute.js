@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function SourceFileAttribute(attributeName, attributeLength, sourceFile) {
       this.attributeName = attributeName;
       this.attributeLength = attributeLength;

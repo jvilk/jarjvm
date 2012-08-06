@@ -1,5 +1,6 @@
 define(['util/Util', 'vm/FieldDescriptor'],
   function(Util, FieldDescriptor) {
+    "use strict";
 
     ReturnDescriptor.type = {
       FIELDTYPE: 0,

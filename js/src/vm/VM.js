@@ -1,5 +1,7 @@
 define(['vm/Thread', 'frontend/Console', 'vm/ClassLoader', 'vm/MethodRun', 'vm/Enum'],
   function (Thread, Console, ClassLoader, MethodRun, Enum) {
+    "use strict";
+    
     /**
      * Create a new VM.
      * consoleID is the ID of the page object that holds the console.

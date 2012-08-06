@@ -3,6 +3,8 @@
  */
 define(['util/Util', 'vm/Enum'],
   function(Util, Enum) {
+    "use strict";
+    
     function ConstantMethodHandleInfo(referenceKind, referenceIndex) {
       this._referenceKind = referenceKind;
       this._referenceIndex = referenceIndex;

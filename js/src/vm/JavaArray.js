@@ -1,5 +1,7 @@
 define(['vm/Enum'],
   function(Enum) {
+    "use strict";
+    
     function JavaArray(elementType, elementClass, dimensions, length){
       this.elementType = elementType;
       this.elementClass = elementClass;

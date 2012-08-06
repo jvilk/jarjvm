@@ -1,5 +1,7 @@
 define(['vm/Enum'],
   function(Enum) {
+    "use strict";
+
     /**
      * This file should have objects that are used to represent actual java instantiations
      */
@@ -35,7 +37,7 @@ define(['vm/Enum'],
       if (classDescriptor.charAt(0) === '[')
         return false;
         
-      return this.classInfo.isA(classInfo);
+      return this.classInfo.isA(classDescriptor);
     };
 
     /**

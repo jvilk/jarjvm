@@ -1,5 +1,6 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
     
     FieldDescriptor.fieldType = {
       BASE: "BASE",

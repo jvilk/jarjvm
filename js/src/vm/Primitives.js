@@ -1,5 +1,7 @@
-define(['util/Util', 'vm/Enum'],
-  function(Util, Enum) {
+define(['util/Util', 'vm/Enum', 'lib/require'],
+  function(Util, Enum, require) {
+    "use strict";
+
     var PrimitiveMaker = {};
     PrimitiveMaker.getInteger = function(value) { return new Integer(value); };
     PrimitiveMaker.getBool = function(value) { return new Bool(value); };
@@ -17,7 +19,7 @@ define(['util/Util', 'vm/Enum'],
     }
 
     function Integer(value){
-      require('util/Util').inherits(this, Primitive, Enum.dataType.INTEGER, value & 0xFFFFFFFF); //Whatever the value is make it a 32bit signed int
+      Util.inherits(this, Primitive, Enum.dataType.INTEGER, value & 0xFFFFFFFF); //Whatever the value is make it a 32bit signed int
     }
 
     /**Arithmetic **/
@@ -104,7 +106,7 @@ define(['util/Util', 'vm/Enum'],
     };
 
     function Byte(value){
-      require('util/Util').inherits(this, Primitive, Enum.dataType.BYTE, value & 0xFF);
+      Util.inherits(this, Primitive, Enum.dataType.BYTE, value & 0xFF);
     }
 
     Byte.prototype.add = function(otherPrimitive){
@@ -193,7 +195,7 @@ define(['util/Util', 'vm/Enum'],
     };
 
     function Bool(value){
-      require('util/Util').inherits(this, Primitive, Enum.dataType.BOOLEAN, value & 0x1);
+      Util.inherits(this, Primitive, Enum.dataType.BOOLEAN, value & 0x1);
     }
 
     Bool.prototype.add = function(otherPrimitive){
@@ -278,7 +280,7 @@ define(['util/Util', 'vm/Enum'],
     };
 
     function Char(value){
-      require('util/Util').inherits(this, Primitive, Enum.dataType.CHAR, value & 0xFF);
+      Util.inherits(this, Primitive, Enum.dataType.CHAR, value & 0xFF);
     }
 
     Char.prototype.add = function(otherPrimitive){
@@ -364,7 +366,7 @@ define(['util/Util', 'vm/Enum'],
     };
 
     function Double(value){
-      require('util/Util').inherits(this, Primitive, Enum.dataType.DOUBLE, value);
+      Util.inherits(this, Primitive, Enum.dataType.DOUBLE, value);
     }
 
     Double.prototype.add = function(otherPrimitive){
@@ -451,7 +453,7 @@ define(['util/Util', 'vm/Enum'],
     };
 
     function Float(value){
-      require('util/Util').inherits(this, Primitive, Enum.dataType.FLOAT, value);
+      Util.inherits(this, Primitive, Enum.dataType.FLOAT, value);
     }
 
     Float.prototype.add = function(otherPrimitive){
@@ -710,18 +712,18 @@ define(['util/Util', 'vm/Enum'],
      */
     Long.fromString = function(str, opt_radix) {
       if (str.length === 0) {
-        throw Error('number format error: empty string');
+        throw new Error('number format error: empty string');
       }
 
       var radix = opt_radix || 10;
       if (radix < 2 || 36 < radix) {
-        throw Error('radix out of range: ' + radix);
+        throw new Error('radix out of range: ' + radix);
       }
 
       if (str.charAt(0) === '-') {
         return Long.fromString(str.substring(1), radix).negate();
       } else if (str.indexOf('-') >= 0) {
-        throw Error('number format error: interior "-" character: ' + str);
+        throw new Error('number format error: interior "-" character: ' + str);
       }
 
       // Do several (8) digits each time through the loop, so as to
@@ -847,7 +849,7 @@ define(['util/Util', 'vm/Enum'],
     Long.prototype.toStringOld = function(opt_radix) {
       var radix = opt_radix || 10;
       if (radix < 2 || 36 < radix) {
-        throw Error('radix out of range: ' + radix);
+        throw new Error('radix out of range: ' + radix);
       }
 
       if (this.isZero()) {
@@ -1369,7 +1371,7 @@ define(['util/Util', 'vm/Enum'],
     };
 
     function Short(value){
-      require('util/Util').inherits(this, Primitive, Enum.dataType.SHORT, value & 0xFFFF);
+      Util.inherits(this, Primitive, Enum.dataType.SHORT, value & 0xFFFF);
     }
 
     Short.prototype.add = function(otherPrimitive){

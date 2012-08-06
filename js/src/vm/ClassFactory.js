@@ -1,8 +1,12 @@
 define(['vm/constantPool/ConstantPoolFactory', 'vm/Attributes/AttributeFactory', 'vm/FieldInfoFactory', 'vm/MethodFactory', 'util/Util', 'vm/Class'],
   function(ConstantPoolFactory, AttributeFactory, FieldInfoFactory, MethodFactory, Util, Class) {
-    ClassFactory = {};
+    "use strict";
+
+    var ClassFactory = {};
 
     ClassFactory.parseClass = function(jcr) {
+      var i;
+
       //u4 magic;
       var magic = jcr.getUintField(4);
 

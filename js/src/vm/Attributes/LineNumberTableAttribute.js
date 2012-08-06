@@ -1,5 +1,7 @@
 define(['util/Util'],
   function(Util) {
+    "use strict";
+    
     function LineNumberTableAttribute(attributeName, lineNumberTable) {
       this.attributeName = attributeName;
       this.lineNumberTable = lineNumberTable;

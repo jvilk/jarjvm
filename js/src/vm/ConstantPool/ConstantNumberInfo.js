@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Enum'],
   function(Util, Enum) {
+    "use strict";
+    
     //Used for INTEGER OR FLOATING REFERENCES
     function ConstantNumberInfo(refType, value) {
       this.tag = refType;

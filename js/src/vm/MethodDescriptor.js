@@ -4,6 +4,7 @@
  */
 define(['util/Util', 'vm/FieldDescriptor', 'vm/ReturnDescriptor'],
   function(Util, FieldDescriptor, ReturnDescriptor) {
+    "use strict";
 
     /**
      * Creates the method descriptor object.

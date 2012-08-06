@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Enum'],
   function(Util, Enum) {
+    "use strict";
+    
     //Used for Strings
     function ConstantStringInfo(stringIndex) {
       this.stringIndex = stringIndex;

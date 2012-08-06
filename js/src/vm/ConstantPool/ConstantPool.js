@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Primitives', 'vm/Enum'],
   function (Util, Primitives, Enum) {
+    "use strict";
+    
     /**
      * Object for the entire constant pool for a class.
      *  * cpItems: Array of ConstantPoolInfo objects.

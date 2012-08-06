@@ -1,5 +1,7 @@
 define(['vm/Frame', 'util/Util'],
   function(Frame, Util) {
+    "use strict";
+    
     /*
      * A basic stack implementation
      */

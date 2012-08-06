@@ -1,5 +1,7 @@
 define(['util/Util', 'vm/Enum', 'vm/MethodDescriptor', 'vm/FieldDescriptor'],
   function(Util, Enum, MethodDescriptor, FieldDescriptor) {
+    "use strict";
+    
     /* Represents a constant_pool_info for FieldRef, MethodRef, or InterfaceMethodRef.
      * parameters:
      *  refType - A tag from ConstantPoolInfo, which has to be either FIELDREF, METHODREF, INTERFACEMETHODREF

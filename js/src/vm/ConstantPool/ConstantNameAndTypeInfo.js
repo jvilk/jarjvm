@@ -3,6 +3,8 @@
  */
 define(['util/Util', 'vm/Enum'],
   function(Util, Enum) {
+    "use strict";
+    
     function ConstantNameAndTypeInfo(nameIndex, descriptorIndex) {
       this.nameIndex = nameIndex;
       this.descriptorIndex = descriptorIndex;

@@ -1,5 +1,7 @@
 define(['util/Util', 'util/JavaClassReader', 'vm/ClassFactory'],
   function(Util, JavaClassReader, ClassFactory) {
+    "use strict";
+    
     function ClassLoader() {
       this.classes = [];
     }

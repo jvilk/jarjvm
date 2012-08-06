@@ -1,5 +1,7 @@
-define(['util/Util', 'vm/NativeFunctions'],
-  function (Util, NativeFunctions) {
+define(['util/Util', 'vm/NativeFunctions', 'vm/MethodRun'],
+  function (Util, NativeFunctions, MethodRun) {
+    "use strict";
+
     /**
      * Represents a method.
      */
