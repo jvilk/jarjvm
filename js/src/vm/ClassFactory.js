@@ -1,4 +1,4 @@
-define(['vm/constantPool/ConstantPoolFactory', 'vm/Attributes/AttributeFactory', 'vm/FieldInfoFactory', 'vm/MethodFactory', 'util/Util', 'vm/Class'],
+define(['vm/ConstantPool/ConstantPoolFactory', 'vm/Attributes/AttributeFactory', 'vm/FieldInfoFactory', 'vm/MethodFactory', 'util/Util', 'vm/Class'],
   function(ConstantPoolFactory, AttributeFactory, FieldInfoFactory, MethodFactory, Util, Class) {
     "use strict";
 
