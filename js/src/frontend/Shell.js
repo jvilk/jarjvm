@@ -359,7 +359,7 @@ define(['util/Util', 'vm/JavaArray', 'vm/Enum', 'vm/MethodRun'],
      */
     function clearstack(shell) {
       JVM.getExecutingThread().clearStack();
-      shell.stduut("Stack is now clear.\n");
+      shell.stdout("Stack is now clear.\n");
     }
 
     /**
