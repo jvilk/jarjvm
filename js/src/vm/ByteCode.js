@@ -1,5 +1,5 @@
-define(['util/Util', 'vm/Data', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray', 'vm/Enum'],
-  function(Util, Data, MethodRun, Primitives, JavaArray, Enum) {
+define(['util/Util', 'vm/MethodRun', 'vm/Primitives', 'vm/JavaArray', 'vm/Enum'],
+  function(Util, MethodRun, Primitives, JavaArray, Enum) {
     "use strict";
     
     /**
